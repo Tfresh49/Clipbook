@@ -18,6 +18,9 @@ import {
   Newspaper,
   Download,
   History,
+  LayoutDashboard,
+  CreditCard,
+  AppWindow,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -46,6 +49,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuShortcut,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -63,6 +67,7 @@ import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { NoteVersionHistory } from '@/components/note-version-history';
 import { NoteCard } from '@/components/note-card';
+import { Progress } from '@/components/ui/progress';
 
 type DisplayMode = 'grid' | 'list';
 type SortKey = 'updatedAt' | 'createdAt' | 'title' | 'contentLength';
@@ -247,10 +252,40 @@ export default function Home() {
                 </div>
                 <div className="flex flex-1 items-center justify-end space-x-2">
                     <ThemeToggle />
-                    <Button variant="ghost" size="icon">
-                        <User className="h-5 w-5" />
-                        <span className="sr-only">Profile</span>
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                             <Button variant="ghost" size="icon">
+                                <User className="h-5 w-5" />
+                                <span className="sr-only">Profile</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                             <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                             <DropdownMenuSeparator/>
+                             <DropdownMenuItem>
+                                 <LayoutDashboard className="mr-2"/> Dashboard
+                             </DropdownMenuItem>
+                             <DropdownMenuSeparator/>
+                             <div className="p-2">
+                                <p className="text-xs text-muted-foreground mb-1">Storage</p>
+                                <Progress value={33} className="h-2"/>
+                                <p className="text-xs text-muted-foreground mt-1">3.3GB of 10GB used</p>
+                             </div>
+                             <DropdownMenuSeparator/>
+                             <DropdownMenuItem>
+                                <Trash2 className="mr-2"/> Trash
+                             </DropdownMenuItem>
+                             <DropdownMenuItem>
+                                <CreditCard className="mr-2"/> Billing
+                                <DropdownMenuShortcut>
+                                    <Badge variant="secondary">Pro</Badge>
+                                </DropdownMenuShortcut>
+                             </DropdownMenuItem>
+                             <DropdownMenuItem>
+                                <Settings className="mr-2"/> Account Settings
+                             </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -262,6 +297,7 @@ export default function Home() {
                             <DropdownMenuItem><Settings className="mr-2"/>App Settings</DropdownMenuItem>
                             <DropdownMenuItem><HelpCircle className="mr-2"/>About</DropdownMenuItem>
                             <DropdownMenuItem><Newspaper className="mr-2"/>News/Updates</DropdownMenuItem>
+                             <DropdownMenuItem><AppWindow className="mr-2"/>Other Apps</DropdownMenuItem>
                             <DropdownMenuSeparator/>
                             <DropdownMenuItem onClick={() => setIsPwaModalOpen(true)}><Download className="mr-2"/>Download App</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -282,12 +318,12 @@ export default function Home() {
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant={displayMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('grid')}>
-                        <List className="h-5 w-5"/>
-                        <span className="sr-only">Grid View</span>
-                    </Button>
                     <Button variant={displayMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('list')}>
                         <LayoutGrid className="h-5 w-5"/>
+                        <span className="sr-only">Grid View</span>
+                    </Button>
+                    <Button variant={displayMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('grid')}>
+                        <List className="h-5 w-5"/>
                         <span className="sr-only">List View</span>
                     </Button>
                     <DropdownMenu>
@@ -440,7 +476,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
-
-    
