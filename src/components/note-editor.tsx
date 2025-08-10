@@ -1,11 +1,11 @@
 'use client';
 
 import type { Note, NoteSettings, EditorTheme, EditorFont, EditorDirection } from '@/lib/types';
-import React, { useState, useEffect } from 'react';
+import React, from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
@@ -48,6 +48,8 @@ import {
   ArrowLeft,
   Loader2,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -76,15 +78,30 @@ const THEME_CLASSES: Record<EditorTheme, string> = {
 
 export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = false, onBack }: NoteEditorProps) {
   const { toast } = useToast();
-  const [settings, setSettings] = useState<NoteSettings>({
+  const [settings, setSettings] = React.useState<NoteSettings>({
     theme: 'light',
     font: 'serif',
     fontSize: 16,
     direction: 'ltr',
   });
-  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
-  const [isUrlModalOpen, setIsUrlModalOpen] = useState(false);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = React.useState(false);
+  const [isUrlModalOpen, setIsUrlModalOpen] = React.useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = React.useState(false);
+
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const { current } = scrollContainerRef;
+      const scrollAmount = 200;
+      if (direction === 'left') {
+        current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      } else {
+        current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+    }
+  };
+
 
   // You would typically load/save these settings per-note or globally
   const handleSettingsChange = (newSettings: Partial<NoteSettings>) => {
@@ -162,33 +179,42 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                 </div>
             </div>
              <div className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <ScrollArea className="w-full whitespace-nowrap">
-                <div className="container flex items-center h-12 space-x-1">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild><Button variant="ghost" size="sm">Heading</Button></DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem><Heading1 className="mr-2"/> Heading 1</DropdownMenuItem>
-                      <DropdownMenuItem><Heading2 className="mr-2"/> Heading 2</DropdownMenuItem>
-                      <DropdownMenuItem><Heading3 className="mr-2"/> Heading 3</DropdownMenuItem>
-                      <DropdownMenuItem><Heading4 className="mr-2"/> Heading 4</DropdownMenuItem>
-                      <DropdownMenuItem><Heading5 className="mr-2"/> Heading 5</DropdownMenuItem>
-                      <DropdownMenuItem><Heading6 className="mr-2"/> Heading 6</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Separator orientation="vertical" className="h-6"/>
-                  <Button variant="ghost" size="icon" title="Bold"><Bold/></Button>
-                  <Button variant="ghost" size="icon" title="Italic"><Italic/></Button>
-                  <Button variant="ghost" size="icon" title="Underline"><Underline/></Button>
-                  <Button variant="ghost" size="icon" title="Strikethrough"><Strikethrough/></Button>
-                  <Separator orientation="vertical" className="h-6"/>
-                  <Button variant="ghost" size="icon" title="Text Color"><Palette/></Button>
-                  <Button variant="ghost" size="icon" title="Highlight"><PaintBucket/></Button>
-                   <Separator orientation="vertical" className="h-6"/>
-                  <Button variant="ghost" size="icon" title="Insert Link" onClick={() => setIsUrlModalOpen(true)}><Link/></Button>
-                  <Button variant="ghost" size="icon" title="Code Block"><Code2/></Button>
-                  <Button variant="ghost" size="icon" title="Upload Image" onClick={() => setIsImageModalOpen(true)}><FileImage/></Button>
-                </div>
-              </ScrollArea>
+              <div className="container flex items-center h-12">
+                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScroll('left')}>
+                    <ChevronLeft />
+                 </Button>
+                 <ScrollArea className="w-full whitespace-nowrap" ref={scrollContainerRef}>
+                    <div className="flex items-center h-12 space-x-1 px-2">
+                        <DropdownMenu>
+                        <DropdownMenuTrigger asChild><Button variant="ghost" size="sm">Heading</Button></DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem><Heading1 className="mr-2"/> Heading 1</DropdownMenuItem>
+                          <DropdownMenuItem><Heading2 className="mr-2"/> Heading 2</DropdownMenuItem>
+                          <DropdownMenuItem><Heading3 className="mr-2"/> Heading 3</DropdownMenuItem>
+                          <DropdownMenuItem><Heading4 className="mr-2"/> Heading 4</DropdownMenuItem>
+                          <DropdownMenuItem><Heading5 className="mr-2"/> Heading 5</DropdownMenuItem>
+                          <DropdownMenuItem><Heading6 className="mr-2"/> Heading 6</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Separator orientation="vertical" className="h-6"/>
+                      <Button variant="ghost" size="icon" title="Bold"><Bold/></Button>
+                      <Button variant="ghost" size="icon" title="Italic"><Italic/></Button>
+                      <Button variant="ghost" size="icon" title="Underline"><Underline/></Button>
+                      <Button variant="ghost" size="icon" title="Strikethrough"><Strikethrough/></Button>
+                      <Separator orientation="vertical" className="h-6"/>
+                      <Button variant="ghost" size="icon" title="Text Color"><Palette/></Button>
+                      <Button variant="ghost" size="icon" title="Highlight"><PaintBucket/></Button>
+                       <Separator orientation="vertical" className="h-6"/>
+                      <Button variant="ghost" size="icon" title="Insert Link" onClick={() => setIsUrlModalOpen(true)}><Link/></Button>
+                      <Button variant="ghost" size="icon" title="Code Block"><Code2/></Button>
+                      <Button variant="ghost" size="icon" title="Upload Image" onClick={() => setIsImageModalOpen(true)}><FileImage/></Button>
+                    </div>
+                    <ScrollBar orientation="horizontal" className="h-2.5" />
+                 </ScrollArea>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScroll('right')}>
+                    <ChevronRight />
+                 </Button>
+              </div>
              </div>
         </header>
       <main className="flex-1 overflow-y-auto">
