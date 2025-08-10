@@ -79,6 +79,19 @@ export default function Home() {
   const [lastDeletedNote, setLastDeletedNote] = useState<{note: Note, index: number} | null>(null);
   const [isWelcomeNoteHidden, setIsWelcomeNoteHidden] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  // PWA install prompt
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
 
   // Load notes from localStorage on initial render
   useEffect(() => {
@@ -237,18 +250,6 @@ export default function Home() {
     setIsHistoryPanelOpen(true);
   }
 
-  // PWA install prompt
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setInstallPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
 
   const handleInstallClick = () => {
     if (installPrompt) {

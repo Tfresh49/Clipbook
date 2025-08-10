@@ -2,6 +2,10 @@
   "name": "ClipBook-Online",
   "short_name": "ClipBook",
   "description": "A clean, intuitive app for creating, editing, and organizing notes with AI-powered features.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#347C58",
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -43,9 +47,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#347C58"
+  ]
 }
