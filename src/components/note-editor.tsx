@@ -1,7 +1,7 @@
 'use client';
 
 import type { Note, NoteSettings, EditorTheme, EditorFont, EditorDirection } from '@/lib/types';
-import React, from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -74,6 +74,13 @@ const THEME_CLASSES: Record<EditorTheme, string> = {
   sepia: 'bg-[#fbf0d9] text-gray-800',
 };
 
+type ActiveTools = {
+    bold?: boolean;
+    italic?: boolean;
+    underline?: boolean;
+    strikethrough?: boolean;
+};
+
 export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = false, onBack }: NoteEditorProps) {
   const { toast } = useToast();
   const [settings, setSettings] = React.useState<NoteSettings>({
@@ -82,6 +89,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
     fontSize: 16,
     direction: 'ltr',
   });
+  const [activeTools, setActiveTools] = React.useState<ActiveTools>({});
   const [isInfoModalOpen, setIsInfoModalOpen] = React.useState(false);
   const [isUrlModalOpen, setIsUrlModalOpen] = React.useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = React.useState(false);
@@ -90,6 +98,11 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
   const handleSettingsChange = (newSettings: Partial<NoteSettings>) => {
     setSettings(prev => ({...prev, ...newSettings}));
   }
+
+  const toggleTool = (tool: keyof ActiveTools) => {
+    setActiveTools(prev => ({ ...prev, [tool]: !prev[tool] }));
+    // In a real rich text editor, you would apply the formatting here.
+  };
 
   const editorStyle: React.CSSProperties = {
     fontSize: `${settings.fontSize}px`,
@@ -177,10 +190,10 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <Separator orientation="vertical" className="h-6"/>
-                      <Button variant="ghost" size="icon" title="Bold"><Bold/></Button>
-                      <Button variant="ghost" size="icon" title="Italic"><Italic/></Button>
-                      <Button variant="ghost" size="icon" title="Underline"><Underline/></Button>
-                      <Button variant="ghost" size="icon" title="Strikethrough"><Strikethrough/></Button>
+                      <Button variant={activeTools.bold ? 'secondary' : 'ghost'} size="icon" title="Bold" onClick={() => toggleTool('bold')}><Bold/></Button>
+                      <Button variant={activeTools.italic ? 'secondary' : 'ghost'} size="icon" title="Italic" onClick={() => toggleTool('italic')}><Italic/></Button>
+                      <Button variant={activeTools.underline ? 'secondary' : 'ghost'} size="icon" title="Underline" onClick={() => toggleTool('underline')}><Underline/></Button>
+                      <Button variant={activeTools.strikethrough ? 'secondary' : 'ghost'} size="icon" title="Strikethrough" onClick={() => toggleTool('strikethrough')}><Strikethrough/></Button>
                       <Separator orientation="vertical" className="h-6"/>
                       <Button variant="ghost" size="icon" title="Text Color"><Palette/></Button>
                       <Button variant="ghost" size="icon" title="Highlight"><PaintBucket/></Button>
