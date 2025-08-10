@@ -1,43 +1,119 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
+  MoreVertical,
+  Search,
+  LayoutGrid,
+  List,
+  Filter,
   FilePlus2,
-  BookText,
-  ChevronRight,
-  NotebookTabs,
+  Share2,
+  Trash2,
+  Info,
+  Edit,
+  User,
+  Settings,
+  HelpCircle,
+  Newspaper,
+  Download,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarInset,
-  SidebarFooter,
-} from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { NoteEditor } from '@/components/note-editor';
 import { INITIAL_NOTES } from '@/lib/data';
 import type { Note } from '@/lib/types';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
+import { cn } from '@/lib/utils';
+
+type DisplayMode = 'grid' | 'list';
+type SortKey = 'updatedAt' | 'createdAt' | 'title' | 'contentLength';
+type SortDirection = 'asc' | 'desc';
 
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>(INITIAL_NOTES);
-  const [activeNoteId, setActiveNoteId] = useState<string | null>(
-    INITIAL_NOTES[0]?.id ?? null
-  );
+  const [searchQuery, setSearchQuery] = useState('');
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('grid');
+  const [sortKey, setSortKey] = useState<SortKey>('updatedAt');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [isPwaModalOpen, setIsPwaModalOpen] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
+  const [newName, setNewName] = useState('');
+  const { toast } = useToast();
 
-  const activeNote = useMemo(
-    () => notes.find((note) => note.id === activeNoteId),
-    [notes, activeNoteId]
-  );
-  
+  const filteredAndSortedNotes = useMemo(() => {
+    return notes
+      .filter((note) =>
+        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        note.content.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .sort((a, b) => {
+        let compareA: any;
+        let compareB: any;
+
+        switch (sortKey) {
+            case 'contentLength':
+                compareA = a.content.length;
+                compareB = b.content.length;
+                break;
+            case 'updatedAt':
+            case 'createdAt':
+                compareA = new Date(a[sortKey]).getTime();
+                compareB = new Date(b[sortKey]).getTime();
+                break;
+            default:
+                compareA = a[sortKey];
+                compareB = b[sortKey];
+        }
+
+        if (compareA < compareB) {
+          return sortDirection === 'asc' ? -1 : 1;
+        }
+        if (compareA > compareB) {
+          return sortDirection === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+  }, [notes, searchQuery, sortKey, sortDirection]);
+
   const handleNewNote = () => {
     const newNote: Note = {
       id: `note-${Date.now()}`,
@@ -48,99 +124,324 @@ export default function Home() {
       updatedAt: new Date().toISOString(),
     };
     setNotes((prev) => [newNote, ...prev]);
-    setActiveNoteId(newNote.id);
-  };
-
-  const handleUpdateNote = (updatedFields: Partial<Note>) => {
-    setNotes((prev) =>
-      prev.map((note) =>
-        note.id === activeNoteId
-          ? { ...note, ...updatedFields, updatedAt: new Date().toISOString() }
-          : note
-      )
-    );
+    // For now, we don't navigate, but you could if you had a note editor page
+    toast({ title: "New Note Created", description: "You can find your new note at the top of the list (sorted by 'Newest')." });
   };
   
   const handleDeleteNote = (noteId: string) => {
-    setNotes(prev => {
-        const newNotes = prev.filter(note => note.id !== noteId);
-        if (activeNoteId === noteId) {
-            setActiveNoteId(newNotes[0]?.id ?? null);
-        }
-        return newNotes;
-    });
+    setNotes(prev => prev.filter(note => note.id !== noteId));
+    toast({ title: "Note Deleted", variant: "destructive" });
+  };
+
+  const openRenameModal = (note: Note) => {
+    setNoteToEdit(note);
+    setNewName(note.title);
+    setIsRenameModalOpen(true);
   }
 
+  const handleRenameNote = () => {
+    if (noteToEdit && newName.trim()) {
+        setNotes(notes.map(n => n.id === noteToEdit.id ? {...n, title: newName.trim(), updatedAt: new Date().toISOString()} : n))
+        setIsRenameModalOpen(false);
+        setNoteToEdit(null);
+        toast({ title: "Note Renamed" });
+    }
+  }
+
+  const openShareModal = (note: Note) => {
+    setNoteToEdit(note);
+    setIsShareModalOpen(true);
+  }
+  
+  const openInfoModal = (note: Note) => {
+    setNoteToEdit(note);
+    setIsInfoModalOpen(true);
+  }
+
+  const handleSortChange = (key: SortKey) => {
+    if (key === sortKey) {
+        setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+        setSortKey(key);
+        setSortDirection('desc');
+    }
+  }
+
+  // PWA install prompt
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = () => {
+    if (installPrompt) {
+        installPrompt.prompt();
+        installPrompt.userChoice.then((choiceResult: { outcome: string }) => {
+            if (choiceResult.outcome === 'accepted') {
+                toast({ title: 'Installation successful!' });
+            } else {
+                toast({ title: 'Installation cancelled.', variant: 'destructive' });
+            }
+            setInstallPrompt(null);
+            setIsPwaModalOpen(false);
+        });
+    }
+  };
+
+
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center justify-between">
-            <div className="p-2 flex items-center gap-2">
-              <NotebookTabs className="w-8 h-8 text-primary" />
-              <h1 className="text-2xl font-headline font-bold">ClipBook</h1>
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
+        <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
+                <div className="flex gap-6 md:gap-10">
+                    <a href="/" className="flex items-center space-x-2">
+                        <span className="inline-block font-bold text-2xl font-headline">ClipBook</span>
+                    </a>
+                </div>
+                <div className="flex flex-1 items-center justify-end space-x-2">
+                    <ThemeToggle />
+                    <Button variant="ghost" size="icon">
+                        <User className="h-5 w-5" />
+                        <span className="sr-only">Profile</span>
+                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-5 w-5" />
+                                <span className="sr-only">App Menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem><Settings className="mr-2"/>App Settings</DropdownMenuItem>
+                            <DropdownMenuItem><HelpCircle className="mr-2"/>About</DropdownMenuItem>
+                            <DropdownMenuItem><Newspaper className="mr-2"/>News/Updates</DropdownMenuItem>
+                            <DropdownMenuSeparator/>
+                            <DropdownMenuItem onClick={() => setIsPwaModalOpen(true)}><Download className="mr-2"/>Download App</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
-            <Button
-              variant="default"
-              size="sm"
-              className="h-8"
-              onClick={handleNewNote}
-            >
-              <FilePlus2 className="mr-2" />
-              New Note
-            </Button>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            {notes.map((note) => (
-              <SidebarMenuItem key={note.id}>
-                <SidebarMenuButton
-                  onClick={() => setActiveNoteId(note.id)}
-                  isActive={note.id === activeNoteId}
-                  className="h-auto py-2 px-3 flex flex-col items-start"
-                >
-                  <div className="font-semibold text-base w-full truncate">
-                    {note.title}
-                  </div>
-                  <div className="text-xs text-muted-foreground w-full mt-1">
-                    {formatDistanceToNow(new Date(note.updatedAt), {
-                      addSuffix: true,
-                    })}
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
-          <ThemeToggle />
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset>
-        {activeNote ? (
-          <NoteEditor note={activeNote} onUpdate={handleUpdateNote} onDelete={handleDeleteNote} />
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center bg-background p-8">
-            <Card className="max-w-md">
-                <CardContent className="p-10">
-                    <BookText className="mx-auto h-16 w-16 text-muted-foreground" />
-                    <h2 className="mt-6 text-2xl font-semibold font-headline">
-                    No Note Selected
-                    </h2>
-                    <p className="mt-2 text-muted-foreground">
-                    Select a note from the list on the left to view it, or create a
-                    new note to get started.
+        </header>
+
+        <main className="flex-1 container py-8">
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <div className="relative flex-grow">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        placeholder="Search notes..."
+                        className="pl-10"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button variant={displayMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('grid')}>
+                        <LayoutGrid className="h-5 w-5"/>
+                        <span className="sr-only">Grid View</span>
+                    </Button>
+                    <Button variant={displayMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('list')}>
+                        <List className="h-5 w-5"/>
+                        <span className="sr-only">List View</span>
+                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon">
+                                <Filter className="h-5 w-5"/>
+                                <span className="sr-only">Filter</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                            <DropdownMenuRadioGroup value={`${sortKey}-${sortDirection}`} onValueChange={(value) => {
+                                const [key, dir] = value.split('-') as [SortKey, SortDirection];
+                                setSortKey(key);
+                                setSortDirection(dir);
+                            }}>
+                                <DropdownMenuRadioItem value="updatedAt-desc">Newest</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="updatedAt-asc">Oldest (Updated)</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="title-asc">Title (A-Z)</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="title-desc">Title (Z-A)</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="contentLength-desc">Length (Longest)</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="contentLength-asc">Length (Shortest)</DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                     <Button onClick={handleNewNote}>
+                        <FilePlus2 className="mr-2 h-5 w-5"/>
+                        New Note
+                    </Button>
+                </div>
+            </div>
+
+            {filteredAndSortedNotes.length > 0 ? (
+                 <div className={cn(
+                    displayMode === 'grid' 
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
+                    : 'flex flex-col gap-4'
+                 )}>
+                    {filteredAndSortedNotes.map(note => (
+                        <Card key={note.id} className={cn(
+                            "flex flex-col", 
+                            displayMode === 'list' && 'flex-row'
+                        )}>
+                            <CardHeader className={cn(displayMode === 'list' && 'flex-1')}>
+                                <CardTitle className="truncate">{note.title}</CardTitle>
+                                <CardDescription>
+                                    Updated {formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true })}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className={cn("flex-grow", displayMode === 'list' && 'flex-1')}>
+                                <p className="line-clamp-3 text-sm text-muted-foreground">{note.content}</p>
+                            </CardContent>
+                            <CardFooter className="flex justify-between items-center">
+                                <div className="flex flex-wrap gap-2">
+                                    {note.tags.slice(0, 3).map(tag => (
+                                        <Badge key={tag} variant="secondary">{tag}</Badge>
+                                    ))}
+                                </div>
+                                 <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => {
+                                            // This would navigate to a full editor page in a real app
+                                            toast({ title: `Opening "${note.title}"` })
+                                        }}>
+                                            <Edit className="mr-2"/> Open
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => openRenameModal(note)}>
+                                            <Edit className="mr-2"/> Rename
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => openShareModal(note)}>
+                                            <Share2 className="mr-2"/> Share
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => openInfoModal(note)}>
+                                            <Info className="mr-2"/> Info
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                    <Trash2 className="mr-2"/> Delete
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the note "{note.title}".
+                                                </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeleteNote(note.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                 </div>
+            ) : (
+                <div className="text-center py-20">
+                    <h2 className="text-2xl font-semibold">No Notes Found</h2>
+                    <p className="text-muted-foreground mt-2">
+                        {searchQuery ? `No notes match your search for "${searchQuery}".` : "You haven't created any notes yet."}
                     </p>
                     <Button onClick={handleNewNote} className="mt-6">
-                    <FilePlus2 className="mr-2" />
-                    Create New Note
+                        <FilePlus2 className="mr-2" />
+                        Create Your First Note
                     </Button>
-                </CardContent>
-            </Card>
-          </div>
-        )}
-      </SidebarInset>
-    </SidebarProvider>
+                </div>
+            )}
+        </main>
+
+        {/* PWA Installation Modal */}
+        <AlertDialog open={isPwaModalOpen} onOpenChange={setIsPwaModalOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Download ClipBook App</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        For the best experience, install the ClipBook app on your device. This allows for offline access and better performance.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    {installPrompt ? (
+                        <AlertDialogAction onClick={handleInstallClick}>Install</AlertDialogAction>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">App is already installed or your browser doesn't support installation.</p>
+                    )}
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Rename Note Modal */}
+        <AlertDialog open={isRenameModalOpen} onOpenChange={setIsRenameModalOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Rename Note</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Enter a new name for the note "{noteToEdit?.title}".
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-4">
+                    <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="New note title" />
+                </div>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleRenameNote}>Rename</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Share Note Modal */}
+        <AlertDialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Share "{noteToEdit?.title}"</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Sharing options are coming soon! You'll be able to create public or private links with password protection.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogAction onClick={() => setIsShareModalOpen(false)}>Got it</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Note Info Modal */}
+        <AlertDialog open={isInfoModalOpen} onOpenChange={setIsInfoModalOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Note Information</AlertDialogTitle>
+                </AlertDialogHeader>
+                {noteToEdit && (
+                    <div className="text-sm text-muted-foreground space-y-2">
+                        <p><strong>Title:</strong> {noteToEdit.title}</p>
+                        <p><strong>Created:</strong> {format(new Date(noteToEdit.createdAt), "PPP p")}</p>
+                        <p><strong>Last Updated:</strong> {format(new Date(noteToEdit.updatedAt), "PPP p")}</p>
+                        <p><strong>Character Count:</strong> {noteToEdit.content.length}</p>
+                        <p><strong>Tags:</strong> {noteToEdit.tags.join(', ') || 'None'}</p>
+                    </div>
+                )}
+                <AlertDialogFooter>
+                    <AlertDialogAction onClick={() => setIsInfoModalOpen(false)}>Close</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    </div>
   );
 }
