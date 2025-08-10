@@ -97,7 +97,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
   };
   
   return (
-    <div className={cn("flex flex-col h-screen bg-muted", FONT_CLASSES[settings.font])}>
+    <div className={cn("flex flex-col h-screen bg-muted", FONT_CLASSES[settings.font], THEME_CLASSES[settings.theme])}>
        <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center space-x-2 sm:space-x-4">
                 <Button variant="ghost" size="icon" onClick={onBack}>
@@ -191,18 +191,18 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
               </ScrollArea>
              </div>
         </header>
-      <main className="flex-1 overflow-y-auto py-8">
-          <div className="container">
-            <div className={cn("mx-auto max-w-4xl p-8 sm:p-12 rounded-lg shadow-lg", THEME_CLASSES[settings.theme])}>
-              <Textarea
-                value={note.content}
-                onChange={(e) => onUpdate({ content: e.target.value })}
-                placeholder="Start writing your masterpiece..."
-                className="w-full resize-none border-0 shadow-none focus-visible:ring-0 p-0 text-base leading-relaxed bg-transparent min-h-[calc(100vh-280px)]"
-                readOnly={readOnly}
-                style={editorStyle}
-              />
-            </div>
+      <main className="flex-1 overflow-y-auto">
+        <div className="container h-full mx-auto max-w-4xl">
+            <Textarea
+              value={note.content}
+              onChange={(e) => onUpdate({ content: e.target.value })}
+              placeholder="Start writing your masterpiece..."
+              className={cn("w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 p-8 text-base leading-relaxed bg-transparent min-h-[calc(100vh-170px)]",
+                THEME_CLASSES[settings.theme]
+              )}
+              readOnly={readOnly}
+              style={editorStyle}
+            />
           </div>
       </main>
 
