@@ -97,7 +97,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
   };
   
   return (
-    <div className={cn("flex flex-col h-screen bg-muted", FONT_CLASSES[settings.font], THEME_CLASSES[settings.theme])}>
+    <div className={cn("flex flex-col h-screen bg-muted", FONT_CLASSES[settings.font])}>
        <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center space-x-2 sm:space-x-4">
                 <Button variant="ghost" size="icon" onClick={onBack}>
@@ -197,7 +197,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
               value={note.content}
               onChange={(e) => onUpdate({ content: e.target.value })}
               placeholder="Start writing your masterpiece..."
-              className={cn("w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 p-8 text-base leading-relaxed bg-transparent min-h-[calc(100vh-170px)]",
+              className={cn("w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 p-8 text-base leading-relaxed bg-transparent min-h-[calc(100vh-11rem)]",
                 THEME_CLASSES[settings.theme]
               )}
               readOnly={readOnly}
