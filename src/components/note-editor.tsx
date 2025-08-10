@@ -48,8 +48,6 @@ import {
   ArrowLeft,
   Loader2,
   Trash2,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -87,21 +85,6 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
   const [isInfoModalOpen, setIsInfoModalOpen] = React.useState(false);
   const [isUrlModalOpen, setIsUrlModalOpen] = React.useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = React.useState(false);
-
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-
-  const handleScroll = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const { current } = scrollContainerRef;
-      const scrollAmount = 200;
-      if (direction === 'left') {
-        current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-      } else {
-        current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-      }
-    }
-  };
-
 
   // You would typically load/save these settings per-note or globally
   const handleSettingsChange = (newSettings: Partial<NoteSettings>) => {
@@ -180,10 +163,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
             </div>
              <div className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="container flex items-center h-12">
-                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScroll('left')}>
-                    <ChevronLeft />
-                 </Button>
-                 <ScrollArea className="w-full whitespace-nowrap" ref={scrollContainerRef}>
+                 <ScrollArea className="w-full whitespace-nowrap">
                     <div className="flex items-center h-12 space-x-1 px-2">
                         <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" size="sm">Heading</Button></DropdownMenuTrigger>
@@ -211,9 +191,6 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                     </div>
                     <ScrollBar orientation="horizontal" className="h-2.5" />
                  </ScrollArea>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScroll('right')}>
-                    <ChevronRight />
-                 </Button>
               </div>
              </div>
         </header>
