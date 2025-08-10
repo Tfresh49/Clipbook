@@ -89,12 +89,14 @@ export default function Home() {
   const [newName, setNewName] = useState('');
   const { toast } = useToast();
   const [lastDeletedNote, setLastDeletedNote] = useState<{note: Note, index: number} | null>(null);
+  const [isWelcomeNoteHidden, setIsWelcomeNoteHidden] = useState(false);
 
   const filteredAndSortedNotes = useMemo(() => {
     return notes
       .filter((note) =>
-        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        note.content.toLowerCase().includes(searchQuery.toLowerCase())
+        (note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        note.content.toLowerCase().includes(searchQuery.toLowerCase())) &&
+        (!isWelcomeNoteHidden || note.id !== 'note-1')
       )
       .sort((a, b) => {
         let compareA: any;
@@ -123,7 +125,7 @@ export default function Home() {
         }
         return 0;
       });
-  }, [notes, searchQuery, sortKey, sortDirection]);
+  }, [notes, searchQuery, sortKey, sortDirection, isWelcomeNoteHidden]);
 
   const handleNewNote = () => {
     const newNote: Note = {
@@ -152,6 +154,11 @@ export default function Home() {
   };
 
   const handleDeleteNote = (noteId: string) => {
+    if (noteId === 'note-1') {
+        setIsWelcomeNoteHidden(true);
+        toast({ title: "Welcome note hidden", description: "You can re-enable it in App Settings." });
+        return;
+    }
     const noteIndex = notes.findIndex(note => note.id === noteId);
     if (noteIndex > -1) {
         const noteToDelete = notes[noteIndex];
@@ -341,11 +348,11 @@ export default function Home() {
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant={displayMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('grid')}>
+                    <Button variant={displayMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('list')}>
                         <LayoutGrid className="h-5 w-5"/>
                         <span className="sr-only">Grid View</span>
                     </Button>
-                    <Button variant={displayMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('list')}>
+                    <Button variant={displayMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('grid')}>
                         <List className="h-5 w-5"/>
                         <span className="sr-only">List View</span>
                     </Button>

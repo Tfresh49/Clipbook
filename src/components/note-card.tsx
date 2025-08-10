@@ -8,6 +8,7 @@ import {
     Info,
     Edit,
     History,
+    EyeOff,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -61,6 +62,7 @@ export const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelet
     }, [note.updatedAt]);
 
     const isList = displayMode === 'list';
+    const isWelcomeNote = note.id === 'note-1';
 
     return (
         <Card className={cn(
@@ -100,9 +102,9 @@ export const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelet
                         }}>
                             <Edit className="mr-2 h-4 w-4"/> Open
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onRename(note)}>
+                        {!isWelcomeNote && <DropdownMenuItem onClick={() => onRename(note)}>
                             <Edit className="mr-2 h-4 w-4"/> Rename
-                        </DropdownMenuItem>
+                        </DropdownMenuItem>}
                          <DropdownMenuItem onClick={() => onShowHistory(note)}>
                             <History className="mr-2 h-4 w-4"/> Version History
                         </DropdownMenuItem>
@@ -113,31 +115,36 @@ export const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelet
                             <Info className="mr-2 h-4 w-4"/> Info
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                    <Trash2 className="mr-2 h-4 w-4"/> Delete
-                                </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the note "{note.title}".
-                                </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => onDelete(note.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
+                        {isWelcomeNote ? (
+                             <DropdownMenuItem onClick={() => onDelete(note.id)}>
+                                <EyeOff className="mr-2 h-4 w-4"/> Hide
+                            </DropdownMenuItem>
+                        ) : (
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                        <Trash2 className="mr-2 h-4 w-4"/> Delete
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete the note "{note.title}".
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => onDelete(note.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </CardFooter>
         </Card>
     )
 }
-    
 
     
