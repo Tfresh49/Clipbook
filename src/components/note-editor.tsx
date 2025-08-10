@@ -149,7 +149,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
   };
   
   return (
-    <div className={cn("flex flex-col h-screen bg-muted", FONT_CLASSES[settings.font])}>
+    <div className={cn("flex flex-col h-screen", FONT_CLASSES[settings.font])}>
        <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center space-x-2 sm:space-x-4">
                 <Button variant="ghost" size="icon" onClick={onBack}>
@@ -236,12 +236,12 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                         <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" size="sm">Heading</Button></DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h1>')}><Heading1 className="mr-2"/> Heading 1</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h2>')}><Heading2 className="mr-2"/> Heading 2</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h3>')}><Heading3 className="mr-2"/> Heading 3</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h4>')}><Heading4 className="mr-2"/> Heading 4</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h5>')}><Heading5 className="mr-2"/> Heading 5</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h6>')}><Heading6 className="mr-2"/> Heading 6</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h1>'); }}><Heading1 className="mr-2"/> Heading 1</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h2>'); }}><Heading2 className="mr-2"/> Heading 2</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h3>'); }}><Heading3 className="mr-2"/> Heading 3</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h4>'); }}><Heading4 className="mr-2"/> Heading 4</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h5>'); }}><Heading5 className="mr-2"/> Heading 5</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h6>'); }}><Heading6 className="mr-2"/> Heading 6</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <Separator orientation="vertical" className="h-6"/>
@@ -263,7 +263,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
              </div>
         </header>
       <main className="flex-1 overflow-y-auto">
-        <div className="container h-full mx-auto max-w-4xl">
+        <div className="container h-full mx-auto px-0 sm:px-4 md:px-8 max-w-4xl">
             <div
                 ref={editorRef}
                 contentEditable={!readOnly}
@@ -277,7 +277,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                 suppressContentEditableWarning
                 placeholder="Start writing your masterpiece..."
                 className={cn(
-                    "w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 p-8 text-base leading-relaxed bg-transparent min-h-[calc(100vh-11rem)] outline-none",
+                    "w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 p-4 sm:p-8 text-base leading-relaxed min-h-[calc(100vh-11rem)] outline-none",
                     THEME_CLASSES[settings.theme]
                 )}
                 style={editorStyle}
