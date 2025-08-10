@@ -16,33 +16,4 @@ export const INITIAL_NOTES: Note[] = [
       }
     ]
   },
-  {
-    id: 'note-2',
-    title: 'Project Ideas',
-    content:
-      'Brainstorming session for the new quarter.\n\n1. Develop a mobile app for budget tracking. Key features should include expense categorization, monthly reports, and savings goals.\n2. Create a web platform for local artists to showcase and sell their work. It should have a portfolio section, an e-commerce module, and an event calendar for exhibitions.\n3. Launch a podcast series about sustainable living. Topics could include zero-waste lifestyles, renewable energy, and ethical consumerism.',
-    tags: ['brainstorming', 'projects', 'ideas'],
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    history: [
-      {
-        content: 'Brainstorming session for the new quarter.\n\n1. Develop a mobile app for budget tracking.\n2. Create a web platform for local artists.',
-        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        content: 'Project ideas...',
-        updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      }
-    ]
-  },
-  {
-    id: 'note-3',
-    title: 'Meeting Notes: Q3 Planning',
-    content:
-      'Attendees: Alice, Bob, Charlie\nDate: Last Tuesday\n\nAgenda:\n- Review of Q2 performance\n- Q3 roadmap discussion\n- Resource allocation\n\nKey Takeaways:\n- Q2 sales exceeded targets by 15%.\n- The main focus for Q3 will be the launch of "Project Phoenix".\n- Marketing team needs two additional content creators.\n- Engineering will prioritize bug fixes in the first two weeks of the quarter.',
-    tags: ['meeting', 'planning', 'work'],
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    history: [],
-  },
 ];

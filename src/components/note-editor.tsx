@@ -30,6 +30,7 @@ import {
 import {
   Info,
   Settings,
+  Heading,
   Heading1,
   Heading2,
   Heading3,
@@ -79,6 +80,7 @@ type ActiveTools = {
     italic?: boolean;
     underline?: boolean;
     strikethrough?: boolean;
+    heading?: string;
 };
 
 export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = false, onBack }: NoteEditorProps) {
@@ -120,6 +122,13 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
     if (document.queryCommandState('italic')) newActiveTools.italic = true;
     if (document.queryCommandState('underline')) newActiveTools.underline = true;
     if (document.queryCommandState('strikethrough')) newActiveTools.strikethrough = true;
+    
+    for (let i = 1; i <= 6; i++) {
+        if (document.queryCommandState('formatBlock', false, `h${i}`)) {
+            newActiveTools.heading = `h${i}`;
+            break;
+        }
+    }
     setActiveTools(newActiveTools);
   };
   
@@ -234,7 +243,12 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                  <ScrollArea className="w-full whitespace-nowrap">
                     <div className="flex items-center h-12 space-x-1 px-2">
                         <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="ghost" size="sm">Heading</Button></DropdownMenuTrigger>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant={activeTools.heading ? 'secondary' : 'ghost'} size="sm">
+                                <Heading className="mr-2"/>
+                                {activeTools.heading ? activeTools.heading.toUpperCase() : 'Heading'}
+                            </Button>
+                        </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h1>'); }}><Heading1 className="mr-2"/> Heading 1</DropdownMenuItem>
                           <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h2>'); }}><Heading2 className="mr-2"/> Heading 2</DropdownMenuItem>
@@ -242,6 +256,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                           <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h4>'); }}><Heading4 className="mr-2"/> Heading 4</DropdownMenuItem>
                           <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h5>'); }}><Heading5 className="mr-2"/> Heading 5</DropdownMenuItem>
                           <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h6>'); }}><Heading6 className="mr-2"/> Heading 6</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', 'p'); }}>Paragraph</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <Separator orientation="vertical" className="h-6"/>
@@ -277,7 +292,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                 suppressContentEditableWarning
                 placeholder="Start writing your masterpiece..."
                 className={cn(
-                    "w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 p-4 sm:p-8 text-base leading-relaxed min-h-[calc(100vh-11rem)] outline-none",
+                    "w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 p-4 sm:p-8 text-base leading-relaxed min-h-[calc(100vh-11rem)] outline-none [&_h1]:text-4xl [&_h1]:font-bold [&_h2]:text-3xl [&_h2]:font-bold [&_h3]:text-2xl [&_h3]:font-bold [&_h4]:text-xl [&_h4]:font-bold [&_h5]:text-lg [&_h5]:font-bold [&_h6]:text-base [&_h6]:font-bold",
                     THEME_CLASSES[settings.theme]
                 )}
                 style={editorStyle}
