@@ -68,6 +68,7 @@ import { cn } from '@/lib/utils';
 import { NoteVersionHistory } from '@/components/note-version-history';
 import { NoteCard } from '@/components/note-card';
 import { Progress } from '@/components/ui/progress';
+import { ToastAction } from '@/components/ui/toast';
 
 type DisplayMode = 'grid' | 'list';
 type SortKey = 'updatedAt' | 'createdAt' | 'title' | 'contentLength';
@@ -87,6 +88,7 @@ export default function Home() {
   const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
   const [newName, setNewName] = useState('');
   const { toast } = useToast();
+  const [lastDeletedNote, setLastDeletedNote] = useState<{note: Note, index: number} | null>(null);
 
   const filteredAndSortedNotes = useMemo(() => {
     return notes
@@ -137,9 +139,30 @@ export default function Home() {
     toast({ title: "New Note Created", description: "You can find your new note at the top of the list (sorted by 'Newest')." });
   };
   
+  const handleUndoDelete = () => {
+    if (lastDeletedNote) {
+        setNotes(prev => {
+            const newNotes = [...prev];
+            newNotes.splice(lastDeletedNote.index, 0, lastDeletedNote.note);
+            return newNotes;
+        });
+        setLastDeletedNote(null);
+        toast({ title: "Note Restored" });
+    }
+  };
+
   const handleDeleteNote = (noteId: string) => {
-    setNotes(prev => prev.filter(note => note.id !== noteId));
-    toast({ title: "Note Deleted", variant: "destructive" });
+    const noteIndex = notes.findIndex(note => note.id === noteId);
+    if (noteIndex > -1) {
+        const noteToDelete = notes[noteIndex];
+        setLastDeletedNote({note: noteToDelete, index: noteIndex});
+        setNotes(prev => prev.filter(note => note.id !== noteId));
+        toast({ 
+            title: "Note Deleted",
+            variant: "destructive",
+            action: <ToastAction altText="Undo" onClick={handleUndoDelete}>Undo</ToastAction>
+        });
+    }
   };
 
   const openRenameModal = (note: Note) => {
@@ -318,12 +341,12 @@ export default function Home() {
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant={displayMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('list')}>
-                        <LayoutGrid className="h-5 w-5"/>
-                        <span className="sr-only">Grid View</span>
-                    </Button>
                     <Button variant={displayMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('grid')}>
                         <List className="h-5 w-5"/>
+                        <span className="sr-only">Grid View</span>
+                    </Button>
+                    <Button variant={displayMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('list')}>
+                        <LayoutGrid className="h-5 w-5"/>
                         <span className="sr-only">List View</span>
                     </Button>
                     <DropdownMenu>
