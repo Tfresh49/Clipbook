@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useTransition, useMemo } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { INITIAL_NOTES } from '@/lib/data';
 import type { Note } from '@/lib/types';
 import { NoteEditor } from '@/components/note-editor';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // A simple in-memory store for notes
 let noteStore: Note[] = [...INITIAL_NOTES];
@@ -21,6 +21,7 @@ export default function NotePage() {
   const [note, setNote] = useState<Note | null>(null);
   const [isSaving, startSavingTransition] = useTransition();
   const [lastSavedVersion, setLastSavedVersion] = useState<Note | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load notes from localStorage on initial render if it exists, otherwise use INITIAL_NOTES
   useEffect(() => {
@@ -35,6 +36,7 @@ export default function NotePage() {
     const currentNote = noteStore.find((n) => n.id === noteId) || null;
     setNote(currentNote);
     setLastSavedVersion(currentNote);
+    setIsLoading(false);
   }, [noteId]);
 
   // Function to save notes to localStorage and update the noteStore
@@ -42,7 +44,8 @@ export default function NotePage() {
     try {
       noteStore = updatedNotes;
       localStorage.setItem('notes', JSON.stringify(updatedNotes));
-    } catch (error) {
+    } catch (error)
+      {
       console.error("Failed to save notes to localStorage", error);
     }
   };
@@ -80,11 +83,23 @@ export default function NotePage() {
     toast({ title: 'Note Deleted', description: 'Returning to the note list.' });
     router.push('/');
   };
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (!note) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p>Note not found or is loading...</p>
+      <div className="flex flex-col items-center justify-center h-screen">
+        <p className="mb-4">Note not found.</p>
+        <Button onClick={() => router.push('/')} variant="outline">
+          <ArrowLeft className="mr-2" />
+          Back to Notes
+        </Button>
       </div>
     );
   }
@@ -92,33 +107,13 @@ export default function NotePage() {
   const isWelcomeNote = note.id === 'note-1';
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-16 items-center space-x-4">
-                <Button variant="ghost" size="icon" onClick={() => router.push('/')}>
-                    <ArrowLeft />
-                    <span className="sr-only">Back</span>
-                </Button>
-                <div className="flex-1">
-                    <h1 className="text-xl font-bold truncate">{note.title}</h1>
-                </div>
-                 <div className="flex items-center gap-2">
-                    {isSaving && <p className="text-sm text-muted-foreground">Saving...</p>}
-                    <p className="text-sm text-muted-foreground">
-                        Last saved:{' '}
-                        {new Date(note.updatedAt).toLocaleTimeString()}
-                    </p>
-                </div>
-            </div>
-        </header>
-      <main className="flex-1 overflow-y-auto">
-        <NoteEditor
-          note={note}
-          onUpdate={handleUpdateNote}
-          onDelete={handleDeleteNote}
-          readOnly={isWelcomeNote}
-        />
-      </main>
-    </div>
+    <NoteEditor
+      note={note}
+      onUpdate={handleUpdateNote}
+      onDelete={handleDeleteNote}
+      isSaving={isSaving}
+      readOnly={isWelcomeNote}
+      onBack={() => router.push('/')}
+    />
   );
 }
