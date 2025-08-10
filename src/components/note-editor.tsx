@@ -25,6 +25,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
   Info,
@@ -106,9 +107,9 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
     setSettings(prev => ({...prev, ...newSettings}));
   }
   
-  const applyFormat = (command: string) => {
+  const applyFormat = (command: string, value?: string) => {
     if (readOnly) return;
-    document.execCommand(command, false);
+    document.execCommand(command, false, value);
     editorRef.current?.focus();
     updateActiveTools();
   };
