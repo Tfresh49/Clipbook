@@ -48,7 +48,7 @@ export default function NotePage() {
   };
 
   const handleUpdateNote = (updatedFields: Partial<Note>) => {
-    if (!note) return;
+    if (!note || note.id === 'note-1') return;
 
     const updatedNote: Note = {
         ...note,
@@ -89,6 +89,8 @@ export default function NotePage() {
     );
   }
 
+  const isWelcomeNote = note.id === 'note-1';
+
   return (
     <div className="flex flex-col h-screen bg-background">
        <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -114,6 +116,7 @@ export default function NotePage() {
           note={note}
           onUpdate={handleUpdateNote}
           onDelete={handleDeleteNote}
+          readOnly={isWelcomeNote}
         />
       </main>
     </div>

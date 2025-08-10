@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Bot, Loader2, Sparkles, Tag, X } from 'lucide-react';
+import { Bot, Info, Loader2, Sparkles, Tag, X } from 'lucide-react';
 import { summarizeNoteAction, suggestTagsAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -19,14 +19,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 interface NoteEditorProps {
   note: Note;
   onUpdate: (updatedFields: Partial<Note>) => void;
   onDelete: (noteId: string) => void;
+  readOnly?: boolean;
 }
 
-export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
+export function NoteEditor({ note, onUpdate, onDelete, readOnly = false }: NoteEditorProps) {
   const [isSummarizing, startSummarizeTransition] = useTransition();
   const [isSuggesting, startSuggestTransition] = useTransition();
   const [summary, setSummary] = useState('');
@@ -98,48 +100,61 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-headline font-semibold">Editor</h2>
         </div>
-        <div className="flex items-center gap-2">
-           <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSummarize}
-              disabled={isSummarizing || !note.content}
-            >
-              {isSummarizing ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Bot className="mr-2 h-4 w-4" />
-              )}
-              Summarize
-            </Button>
+        {!readOnly && (
+          <div className="flex items-center gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSuggestTags}
-              disabled={isSuggesting || !note.content}
-            >
-              {isSuggesting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="mr-2 h-4 w-4" />
-              )}
-              Suggest Tags
-            </Button>
-            <Button variant="destructive" size="sm" onClick={() => onDelete(note.id)}>Delete Note</Button>
-        </div>
+                variant="outline"
+                size="sm"
+                onClick={handleSummarize}
+                disabled={isSummarizing || !note.content}
+              >
+                {isSummarizing ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Bot className="mr-2 h-4 w-4" />
+                )}
+                Summarize
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSuggestTags}
+                disabled={isSuggesting || !note.content}
+              >
+                {isSuggesting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                Suggest Tags
+              </Button>
+              <Button variant="destructive" size="sm" onClick={() => onDelete(note.id)}>Delete Note</Button>
+          </div>
+        )}
       </div>
       <div className="flex-grow p-6 overflow-y-auto">
+        {readOnly && (
+           <Alert className="mb-6">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Read-Only Note</AlertTitle>
+            <AlertDescription>
+              This is the welcome note and serves as a tutorial. It cannot be edited or deleted.
+            </AlertDescription>
+          </Alert>
+        )}
         <Input
           value={note.title}
           onChange={(e) => onUpdate({ title: e.target.value })}
           placeholder="Note Title"
           className="text-3xl font-bold font-headline border-0 shadow-none focus-visible:ring-0 px-0 h-auto mb-4 bg-transparent"
+          readOnly={readOnly}
         />
         <Textarea
           value={note.content}
           onChange={(e) => onUpdate({ content: e.target.value })}
           placeholder="Start writing your note here..."
           className="flex-grow w-full resize-none border-0 shadow-none focus-visible:ring-0 p-0 text-base leading-relaxed bg-transparent min-h-[calc(100vh-300px)]"
+          readOnly={readOnly}
         />
         <div className="mt-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-2">Tags</h3>
@@ -147,27 +162,31 @@ export function NoteEditor({ note, onUpdate, onDelete }: NoteEditorProps) {
             {note.tags.map((tag) => (
               <Badge key={tag} variant="secondary" className="text-sm py-1 px-3">
                 {tag}
-                <button onClick={() => handleRemoveTag(tag)} className="ml-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 p-0.5">
-                  <X className="h-3 w-3" />
-                </button>
+                {!readOnly && (
+                  <button onClick={() => handleRemoveTag(tag)} className="ml-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 p-0.5">
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
               </Badge>
             ))}
-            <div className="relative">
-              <Input
-                ref={tagInputRef}
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleTagInputKeyDown}
-                placeholder="Add a tag..."
-                className="h-8 pl-8"
-              />
-               <Tag className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            </div>
+            {!readOnly && (
+              <div className="relative">
+                <Input
+                  ref={tagInputRef}
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleTagInputKeyDown}
+                  placeholder="Add a tag..."
+                  className="h-8 pl-8"
+                />
+                 <Tag className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              </div>
+            )}
           </div>
         </div>
 
-        {suggestedTags.length > 0 && (
+        {!readOnly && suggestedTags.length > 0 && (
           <div className="mt-4">
              <h3 className="text-sm font-medium text-muted-foreground mb-2">Suggestions</h3>
              <div className="flex flex-wrap gap-2">
