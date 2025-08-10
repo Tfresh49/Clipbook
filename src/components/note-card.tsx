@@ -42,6 +42,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type DisplayMode = 'grid' | 'list';
 
@@ -55,6 +56,7 @@ export const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelet
     onShowHistory: (note: Note) => void;
 }) => {
     const { toast } = useToast();
+    const router = useRouter();
     const [updatedText, setUpdatedText] = useState('');
 
     useEffect(() => {
@@ -64,42 +66,49 @@ export const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelet
     const isList = displayMode === 'list';
     const isWelcomeNote = note.id === 'note-1';
 
+    const handleOpenNote = () => {
+        toast({ title: `Opening "${note.title}"` })
+        router.push(`/note/${note.id}`);
+    }
+
     return (
-        <Card className={cn(
-            "flex flex-col transition-all duration-200 hover:shadow-md",
-            isList && "flex-col" // Keep as flex-col for consistency within the grid cell
-        )}>
-            <CardHeader className={cn("w-full")}>
+        <Card 
+            className={cn(
+                "flex flex-col transition-all duration-200 hover:shadow-md cursor-pointer",
+                isList && "flex-col sm:flex-row"
+            )}
+            onClick={handleOpenNote}
+        >
+            <CardHeader className={cn("w-full", isList && "sm:w-1/3")}>
                 <CardTitle className="truncate text-lg">{note.title}</CardTitle>
                  <CardDescription>
                     Updated {updatedText}
                 </CardDescription>
             </CardHeader>
-            <CardContent className={cn("flex-grow w-full")}>
+            <CardContent className={cn("flex-grow w-full", isList && "sm:w-2/3")}>
                 <p className={cn("text-sm text-muted-foreground",
-                    isList ? "line-clamp-4" : "line-clamp-4" // Same clamp for both modes
+                    isList ? "line-clamp-2" : "line-clamp-4"
                 )}>
                     {note.content}
                 </p>
             </CardContent>
             <CardFooter className={cn(
-                "flex justify-between items-center w-full"
+                "flex justify-between items-center w-full",
+                isList && "sm:w-auto sm:flex-col sm:items-end sm:justify-center p-4"
             )}>
-                <div className={cn("flex flex-wrap gap-1")}>
+                <div className={cn("flex flex-wrap gap-1", isList && "sm:hidden")}>
                     {note.tags.slice(0, 2).map(tag => (
                         <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
                     ))}
                 </div>
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
                             <MoreVertical className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => {
-                            toast({ title: `Opening "${note.title}"` })
-                        }}>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem onClick={handleOpenNote}>
                             <Edit className="mr-2 h-4 w-4"/> Open
                         </DropdownMenuItem>
                         {!isWelcomeNote && <DropdownMenuItem onClick={() => onRename(note)}>
@@ -146,5 +155,3 @@ export const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelet
         </Card>
     )
 }
-
-    

@@ -28,14 +28,6 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { INITIAL_NOTES } from '@/lib/data';
 import type { Note } from '@/lib/types';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
@@ -44,9 +36,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuShortcut,
@@ -61,7 +50,6 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
   } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
@@ -75,7 +63,7 @@ type SortKey = 'updatedAt' | 'createdAt' | 'title' | 'contentLength';
 type SortDirection = 'asc' | 'desc';
 
 export default function Home() {
-  const [notes, setNotes] = useState<Note[]>(INITIAL_NOTES);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [displayMode, setDisplayMode] = useState<DisplayMode>('grid');
   const [sortKey, setSortKey] = useState<SortKey>('updatedAt');
@@ -90,6 +78,37 @@ export default function Home() {
   const { toast } = useToast();
   const [lastDeletedNote, setLastDeletedNote] = useState<{note: Note, index: number} | null>(null);
   const [isWelcomeNoteHidden, setIsWelcomeNoteHidden] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load notes from localStorage on initial render
+  useEffect(() => {
+    try {
+      const storedNotes = localStorage.getItem('notes');
+      if (storedNotes) {
+        setNotes(JSON.parse(storedNotes));
+      } else {
+        setNotes(INITIAL_NOTES);
+        localStorage.setItem('notes', JSON.stringify(INITIAL_NOTES));
+      }
+      const welcomeHidden = localStorage.getItem('welcomeNoteHidden') === 'true';
+      setIsWelcomeNoteHidden(welcomeHidden);
+    } catch (error) {
+        console.error("Failed to access localStorage", error);
+        setNotes(INITIAL_NOTES);
+    } finally {
+        setIsLoading(false);
+    }
+  }, []);
+
+  const saveNotes = (updatedNotes: Note[]) => {
+    setNotes(updatedNotes);
+    try {
+        localStorage.setItem('notes', JSON.stringify(updatedNotes));
+    } catch (error) {
+        console.error("Failed to save notes to localStorage", error);
+    }
+  }
+
 
   const filteredAndSortedNotes = useMemo(() => {
     return notes
@@ -137,17 +156,16 @@ export default function Home() {
       updatedAt: new Date().toISOString(),
       history: [],
     };
-    setNotes((prev) => [newNote, ...prev]);
+    const newNotes = [newNote, ...notes];
+    saveNotes(newNotes);
     toast({ title: "New Note Created", description: "You can find your new note at the top of the list (sorted by 'Newest')." });
   };
   
   const handleUndoDelete = () => {
     if (lastDeletedNote) {
-        setNotes(prev => {
-            const newNotes = [...prev];
-            newNotes.splice(lastDeletedNote.index, 0, lastDeletedNote.note);
-            return newNotes;
-        });
+        const newNotes = [...notes];
+        newNotes.splice(lastDeletedNote.index, 0, lastDeletedNote.note);
+        saveNotes(newNotes);
         setLastDeletedNote(null);
         toast({ title: "Note Restored" });
     }
@@ -156,6 +174,7 @@ export default function Home() {
   const handleDeleteNote = (noteId: string) => {
     if (noteId === 'note-1') {
         setIsWelcomeNoteHidden(true);
+        localStorage.setItem('welcomeNoteHidden', 'true');
         toast({ title: "Welcome note hidden", description: "You can re-enable it in App Settings." });
         return;
     }
@@ -163,7 +182,8 @@ export default function Home() {
     if (noteIndex > -1) {
         const noteToDelete = notes[noteIndex];
         setLastDeletedNote({note: noteToDelete, index: noteIndex});
-        setNotes(prev => prev.filter(note => note.id !== noteId));
+        const newNotes = notes.filter(note => note.id !== noteId);
+        saveNotes(newNotes);
         toast({ 
             title: "Note Deleted",
             variant: "destructive",
@@ -192,7 +212,8 @@ export default function Home() {
                 updatedAt: new Date().toISOString(),
                 history: [newHistoryEntry, ...(oldNote.history || [])],
             };
-            setNotes(notes.map(n => (n.id === noteToEdit.id ? updatedNote : n)));
+            const newNotes = notes.map(n => (n.id === noteToEdit.id ? updatedNote : n));
+            saveNotes(newNotes);
         }
 
         setIsRenameModalOpen(false);
@@ -214,15 +235,6 @@ export default function Home() {
   const openHistoryPanel = (note: Note) => {
     setNoteToEdit(note);
     setIsHistoryPanelOpen(true);
-  }
-
-  const handleSortChange = (key: SortKey) => {
-    if (key === sortKey) {
-        setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-        setSortKey(key);
-        setSortDirection('desc');
-    }
   }
 
   // PWA install prompt
@@ -254,7 +266,7 @@ export default function Home() {
   };
 
   const handleRevertToVersion = (noteId: string, version: { content: string; updatedAt: string }) => {
-    setNotes(notes.map(n => {
+    const newNotes = notes.map(n => {
         if (n.id === noteId) {
             const oldVersion = { content: n.content, updatedAt: n.updatedAt };
             return {
@@ -265,7 +277,8 @@ export default function Home() {
             };
         }
         return n;
-    }));
+    });
+    saveNotes(newNotes);
     toast({ title: "Note version restored!" });
     setIsHistoryPanelOpen(false);
   };
@@ -348,12 +361,12 @@ export default function Home() {
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant={displayMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('list')}>
-                        <LayoutGrid className="h-5 w-5"/>
-                        <span className="sr-only">Grid View</span>
-                    </Button>
                     <Button variant={displayMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('grid')}>
                         <List className="h-5 w-5"/>
+                        <span className="sr-only">Grid View</span>
+                    </Button>
+                    <Button variant={displayMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('list')}>
+                        <LayoutGrid className="h-5 w-5"/>
                         <span className="sr-only">List View</span>
                     </Button>
                     <DropdownMenu>
@@ -386,22 +399,42 @@ export default function Home() {
                 </div>
             </div>
 
-            {filteredAndSortedNotes.length > 0 ? (
+            {isLoading ? (
+                 <div className="text-center py-20">
+                    <h2 className="text-2xl font-semibold">Loading Notes...</h2>
+                 </div>
+            ) : filteredAndSortedNotes.length > 0 ? (
                  <div className={cn(
                     displayMode === 'grid' 
                     ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6' 
-                    : 'grid grid-cols-1 sm:grid-cols-2 gap-4'
+                    : 'grid grid-cols-1 gap-4'
                  )}>
                     {filteredAndSortedNotes.map(note => (
                        <NoteCard 
                             key={note.id}
                             note={note}
                             displayMode={displayMode}
-                            onRename={openRenameModal}
-                            onShare={openShareModal}
-                            onInfo={openInfoModal}
-                            onDelete={handleDeleteNote}
-                            onShowHistory={openHistoryPanel}
+                            onRename={(note) => {
+                                // Prevent modal from closing due to event propagation
+                                event?.stopPropagation();
+                                openRenameModal(note);
+                            }}
+                            onShare={(note) => {
+                                event?.stopPropagation();
+                                openShareModal(note)
+                            }}
+                            onInfo={(note) => {
+                                event?.stopPropagation();
+                                openInfoModal(note)
+                            }}
+                            onDelete={(id) => {
+                                event?.stopPropagation();
+                                handleDeleteNote(id)
+                            }}
+                            onShowHistory={(note) => {
+                                event?.stopPropagation();
+                                openHistoryPanel(note)
+                            }}
                        />
                     ))}
                  </div>
@@ -506,5 +539,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
