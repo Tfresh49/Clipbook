@@ -52,28 +52,27 @@ export default function NotePage() {
 
   const handleUpdateNote = (updatedFields: Partial<Note>) => {
     if (!note || note.id === 'note-1') return;
-
-    const updatedNote: Note = {
-        ...note,
-        ...updatedFields,
-        updatedAt: new Date().toISOString(),
-    };
-    
-    // Create history entry only if content changes
-    if (updatedFields.content && lastSavedVersion && lastSavedVersion.content !== updatedFields.content) {
+  
+    const updatedNote = { ...note, ...updatedFields };
+  
+    // Debounce saving
+    startSavingTransition(() => {
+      const isContentChanged = updatedFields.content && lastSavedVersion && lastSavedVersion.content !== updatedFields.content;
+      if (isContentChanged) {
         const newHistoryEntry = {
-            content: lastSavedVersion.content,
-            updatedAt: lastSavedVersion.updatedAt,
+          content: lastSavedVersion.content,
+          updatedAt: lastSavedVersion.updatedAt,
         };
         updatedNote.history = [newHistoryEntry, ...(note.history || [])];
-    }
-    
-    setNote(updatedNote);
-    setLastSavedVersion(updatedNote); // Keep track of the last version that was saved
-    
-    startSavingTransition(() => {
-        const newNotes = noteStore.map((n) => (n.id === noteId ? updatedNote : n));
-        saveNotes(newNotes);
+      }
+  
+      updatedNote.updatedAt = new Date().toISOString();
+  
+      setNote(updatedNote);
+      setLastSavedVersion(updatedNote); 
+  
+      const newNotes = noteStore.map((n) => (n.id === noteId ? updatedNote : n));
+      saveNotes(newNotes);
     });
   };
 

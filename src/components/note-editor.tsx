@@ -3,7 +3,6 @@
 import type { Note, NoteSettings, EditorTheme, EditorFont, EditorDirection } from '@/lib/types';
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -93,16 +92,55 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
   const [isInfoModalOpen, setIsInfoModalOpen] = React.useState(false);
   const [isUrlModalOpen, setIsUrlModalOpen] = React.useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = React.useState(false);
+  const editorRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const editor = editorRef.current;
+    if (editor && editor.innerHTML !== note.content) {
+      editor.innerHTML = note.content;
+    }
+  }, [note.content]);
 
   // You would typically load/save these settings per-note or globally
   const handleSettingsChange = (newSettings: Partial<NoteSettings>) => {
     setSettings(prev => ({...prev, ...newSettings}));
   }
-
-  const toggleTool = (tool: keyof ActiveTools) => {
-    setActiveTools(prev => ({ ...prev, [tool]: !prev[tool] }));
-    // In a real rich text editor, you would apply the formatting here.
+  
+  const applyFormat = (command: string) => {
+    if (readOnly) return;
+    document.execCommand(command, false);
+    editorRef.current?.focus();
+    updateActiveTools();
   };
+  
+  const updateActiveTools = () => {
+    const newActiveTools: ActiveTools = {};
+    if (document.queryCommandState('bold')) newActiveTools.bold = true;
+    if (document.queryCommandState('italic')) newActiveTools.italic = true;
+    if (document.queryCommandState('underline')) newActiveTools.underline = true;
+    if (document.queryCommandState('strikethrough')) newActiveTools.strikethrough = true;
+    setActiveTools(newActiveTools);
+  };
+  
+  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    if (readOnly) return;
+    const content = e.currentTarget.innerHTML;
+    onUpdate({ content });
+  };
+  
+  const handleSelectionChange = () => {
+    if (document.activeElement === editorRef.current) {
+      updateActiveTools();
+    }
+  };
+
+  React.useEffect(() => {
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, []);
+
 
   const editorStyle: React.CSSProperties = {
     fontSize: `${settings.fontSize}px`,
@@ -167,10 +205,26 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                         </DropdownMenuContent>
                     </DropdownMenu>
                     {!readOnly && (
-                      <Button variant="destructive" size="icon" onClick={() => onDelete(note.id)}>
-                        <Trash2 className="h-5 w-5" />
-                        <span className="sr-only">Delete</span>
-                      </Button>
+                      <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="icon">
+                                <Trash2 className="h-5 w-5" />
+                                <span className="sr-only">Delete</span>
+                              </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete the note "{note.title}".
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => onDelete(note.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                      </AlertDialog>
                     )}
                 </div>
             </div>
@@ -181,19 +235,19 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                         <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" size="sm">Heading</Button></DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem><Heading1 className="mr-2"/> Heading 1</DropdownMenuItem>
-                          <DropdownMenuItem><Heading2 className="mr-2"/> Heading 2</DropdownMenuItem>
-                          <DropdownMenuItem><Heading3 className="mr-2"/> Heading 3</DropdownMenuItem>
-                          <DropdownMenuItem><Heading4 className="mr-2"/> Heading 4</DropdownMenuItem>
-                          <DropdownMenuItem><Heading5 className="mr-2"/> Heading 5</DropdownMenuItem>
-                          <DropdownMenuItem><Heading6 className="mr-2"/> Heading 6</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h1>')}><Heading1 className="mr-2"/> Heading 1</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h2>')}><Heading2 className="mr-2"/> Heading 2</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h3>')}><Heading3 className="mr-2"/> Heading 3</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h4>')}><Heading4 className="mr-2"/> Heading 4</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h5>')}><Heading5 className="mr-2"/> Heading 5</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => applyFormat('formatBlock', '<h6>')}><Heading6 className="mr-2"/> Heading 6</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <Separator orientation="vertical" className="h-6"/>
-                      <Button variant={activeTools.bold ? 'secondary' : 'ghost'} size="icon" title="Bold" onClick={() => toggleTool('bold')}><Bold/></Button>
-                      <Button variant={activeTools.italic ? 'secondary' : 'ghost'} size="icon" title="Italic" onClick={() => toggleTool('italic')}><Italic/></Button>
-                      <Button variant={activeTools.underline ? 'secondary' : 'ghost'} size="icon" title="Underline" onClick={() => toggleTool('underline')}><Underline/></Button>
-                      <Button variant={activeTools.strikethrough ? 'secondary' : 'ghost'} size="icon" title="Strikethrough" onClick={() => toggleTool('strikethrough')}><Strikethrough/></Button>
+                      <Button variant={activeTools.bold ? 'secondary' : 'ghost'} size="icon" title="Bold" onMouseDown={(e) => { e.preventDefault(); applyFormat('bold'); }}><Bold/></Button>
+                      <Button variant={activeTools.italic ? 'secondary' : 'ghost'} size="icon" title="Italic" onMouseDown={(e) => { e.preventDefault(); applyFormat('italic'); }}><Italic/></Button>
+                      <Button variant={activeTools.underline ? 'secondary' : 'ghost'} size="icon" title="Underline" onMouseDown={(e) => { e.preventDefault(); applyFormat('underline'); }}><Underline/></Button>
+                      <Button variant={activeTools.strikethrough ? 'secondary' : 'ghost'} size="icon" title="Strikethrough" onMouseDown={(e) => { e.preventDefault(); applyFormat('strikeThrough'); }}><Strikethrough/></Button>
                       <Separator orientation="vertical" className="h-6"/>
                       <Button variant="ghost" size="icon" title="Text Color"><Palette/></Button>
                       <Button variant="ghost" size="icon" title="Highlight"><PaintBucket/></Button>
@@ -209,15 +263,23 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
         </header>
       <main className="flex-1 overflow-y-auto">
         <div className="container h-full mx-auto max-w-4xl">
-            <Textarea
-              value={note.content}
-              onChange={(e) => onUpdate({ content: e.target.value })}
-              placeholder="Start writing your masterpiece..."
-              className={cn("w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 p-8 text-base leading-relaxed bg-transparent min-h-[calc(100vh-11rem)]",
-                THEME_CLASSES[settings.theme]
-              )}
-              readOnly={readOnly}
-              style={editorStyle}
+            <div
+                ref={editorRef}
+                contentEditable={!readOnly}
+                onInput={handleInput}
+                onBlur={() => {
+                  const content = editorRef.current?.innerHTML || '';
+                  onUpdate({ content });
+                }}
+                onMouseUp={updateActiveTools}
+                onKeyUp={updateActiveTools}
+                suppressContentEditableWarning
+                placeholder="Start writing your masterpiece..."
+                className={cn(
+                    "w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 p-8 text-base leading-relaxed bg-transparent min-h-[calc(100vh-11rem)] outline-none",
+                    THEME_CLASSES[settings.theme]
+                )}
+                style={editorStyle}
             />
           </div>
       </main>
