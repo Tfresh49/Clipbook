@@ -17,6 +17,7 @@ import {
   HelpCircle,
   Newspaper,
   Download,
+  History,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -60,18 +61,20 @@ import {
   } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
+import { NoteVersionHistory } from '@/components/note-version-history';
 
 type DisplayMode = 'grid' | 'list';
 type SortKey = 'updatedAt' | 'createdAt' | 'title' | 'contentLength';
 type SortDirection = 'asc' | 'desc';
 
-const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelete }: {
+const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelete, onShowHistory }: {
     note: Note,
     displayMode: DisplayMode,
     onRename: (note: Note) => void,
     onShare: (note: Note) => void,
     onInfo: (note: Note) => void,
     onDelete: (noteId: string) => void,
+    onShowHistory: (note: Note) => void;
 }) => {
     const { toast } = useToast();
     const [updatedText, setUpdatedText] = useState('');
@@ -114,6 +117,9 @@ const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelete }: {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onRename(note)}>
                             <Edit className="mr-2"/> Rename
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => onShowHistory(note)}>
+                            <History className="mr-2"/> Version History
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onShare(note)}>
                             <Share2 className="mr-2"/> Share
@@ -158,6 +164,7 @@ export default function Home() {
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
   const [noteToEdit, setNoteToEdit] = useState<Note | null>(null);
   const [newName, setNewName] = useState('');
   const { toast } = useToast();
@@ -205,6 +212,7 @@ export default function Home() {
       tags: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      history: [],
     };
     setNotes((prev) => [newNote, ...prev]);
     toast({ title: "New Note Created", description: "You can find your new note at the top of the list (sorted by 'Newest')." });
@@ -223,7 +231,21 @@ export default function Home() {
 
   const handleRenameNote = () => {
     if (noteToEdit && newName.trim()) {
-        setNotes(notes.map(n => n.id === noteToEdit.id ? {...n, title: newName.trim(), updatedAt: new Date().toISOString()} : n))
+        const oldNote = notes.find(n => n.id === noteToEdit.id);
+        if (oldNote) {
+            const newHistoryEntry = {
+                content: oldNote.content,
+                updatedAt: oldNote.updatedAt,
+            };
+            const updatedNote = {
+                ...noteToEdit,
+                title: newName.trim(),
+                updatedAt: new Date().toISOString(),
+                history: [newHistoryEntry, ...(oldNote.history || [])],
+            };
+            setNotes(notes.map(n => (n.id === noteToEdit.id ? updatedNote : n)));
+        }
+
         setIsRenameModalOpen(false);
         setNoteToEdit(null);
         toast({ title: "Note Renamed" });
@@ -238,6 +260,11 @@ export default function Home() {
   const openInfoModal = (note: Note) => {
     setNoteToEdit(note);
     setIsInfoModalOpen(true);
+  }
+
+  const openHistoryPanel = (note: Note) => {
+    setNoteToEdit(note);
+    setIsHistoryPanelOpen(true);
   }
 
   const handleSortChange = (key: SortKey) => {
@@ -275,6 +302,23 @@ export default function Home() {
             setIsPwaModalOpen(false);
         });
     }
+  };
+
+  const handleRevertToVersion = (noteId: string, version: { content: string; updatedAt: string }) => {
+    setNotes(notes.map(n => {
+        if (n.id === noteId) {
+            const oldVersion = { content: n.content, updatedAt: n.updatedAt };
+            return {
+                ...n,
+                content: version.content,
+                updatedAt: new Date().toISOString(),
+                history: [oldVersion, ...(n.history || [])],
+            };
+        }
+        return n;
+    }));
+    toast({ title: "Note version restored!" });
+    setIsHistoryPanelOpen(false);
   };
 
 
@@ -377,6 +421,7 @@ export default function Home() {
                             onShare={openShareModal}
                             onInfo={openInfoModal}
                             onDelete={handleDeleteNote}
+                            onShowHistory={openHistoryPanel}
                        />
                     ))}
                  </div>
@@ -393,6 +438,16 @@ export default function Home() {
                 </div>
             )}
         </main>
+        
+        {noteToEdit && (
+            <NoteVersionHistory
+                isOpen={isHistoryPanelOpen}
+                onOpenChange={setIsHistoryPanelOpen}
+                note={noteToEdit}
+                onRevert={handleRevertToVersion}
+            />
+        )}
+
 
         {/* PWA Installation Modal */}
         <AlertDialog open={isPwaModalOpen} onOpenChange={setIsPwaModalOpen}>
@@ -471,5 +526,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

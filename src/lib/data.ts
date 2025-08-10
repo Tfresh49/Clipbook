@@ -9,6 +9,12 @@ export const INITIAL_NOTES: Note[] = [
     tags: ['welcome', 'getting-started'],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    history: [
+      {
+        content: "This is a note taking app.",
+        updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      }
+    ]
   },
   {
     id: 'note-2',
@@ -18,6 +24,16 @@ export const INITIAL_NOTES: Note[] = [
     tags: ['brainstorming', 'projects', 'ideas'],
     createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    history: [
+      {
+        content: 'Brainstorming session for the new quarter.\n\n1. Develop a mobile app for budget tracking.\n2. Create a web platform for local artists.',
+        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        content: 'Project ideas...',
+        updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      }
+    ]
   },
   {
     id: 'note-3',
@@ -27,5 +43,6 @@ export const INITIAL_NOTES: Note[] = [
     tags: ['meeting', 'planning', 'work'],
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    history: [],
   },
 ];
