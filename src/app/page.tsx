@@ -283,11 +283,11 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant={displayMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('grid')}>
-                        <LayoutGrid className="h-5 w-5"/>
+                        <List className="h-5 w-5"/>
                         <span className="sr-only">Grid View</span>
                     </Button>
                     <Button variant={displayMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('list')}>
-                        <List className="h-5 w-5"/>
+                        <LayoutGrid className="h-5 w-5"/>
                         <span className="sr-only">List View</span>
                     </Button>
                     <DropdownMenu>
