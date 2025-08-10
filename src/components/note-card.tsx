@@ -65,28 +65,25 @@ export const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelet
     return (
         <Card className={cn(
             "flex flex-col transition-all duration-200 hover:shadow-md",
-            isList && "flex-row items-center"
+            isList && "flex-col" // Keep as flex-col for consistency within the grid cell
         )}>
-            <CardHeader className={cn("w-full", isList && "flex-1")}>
+            <CardHeader className={cn("w-full")}>
                 <CardTitle className="truncate text-lg">{note.title}</CardTitle>
-                 {!isList && (
-                    <CardDescription>
-                        Updated {updatedText}
-                    </CardDescription>
-                )}
+                 <CardDescription>
+                    Updated {updatedText}
+                </CardDescription>
             </CardHeader>
-            <CardContent className={cn("flex-grow w-full", isList && "flex-1")}>
+            <CardContent className={cn("flex-grow w-full")}>
                 <p className={cn("text-sm text-muted-foreground",
-                    isList ? "line-clamp-2" : "line-clamp-4"
+                    isList ? "line-clamp-4" : "line-clamp-4" // Same clamp for both modes
                 )}>
                     {note.content}
                 </p>
             </CardContent>
             <CardFooter className={cn(
-                "flex justify-between items-center w-full",
-                isList && "flex-col gap-4 items-end self-center"
+                "flex justify-between items-center w-full"
             )}>
-                <div className={cn("flex flex-wrap gap-1", isList && "hidden")}>
+                <div className={cn("flex flex-wrap gap-1")}>
                     {note.tags.slice(0, 2).map(tag => (
                         <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
                     ))}
@@ -141,4 +138,6 @@ export const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelet
         </Card>
     )
 }
+    
+
     
