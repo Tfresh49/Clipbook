@@ -210,7 +210,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                               <DropdownMenuLabel className="text-xs font-normal">Direction</DropdownMenuLabel>
                              <DropdownMenuRadioGroup value={settings.direction} onValueChange={(v) => handleSettingsChange({direction: v as EditorDirection})}>
                                 <DropdownMenuRadioItem value="ltr">Left-to-Right</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="rtl">Right-to-Left</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="rtl">Right-to-Right</DropdownMenuRadioItem>
                              </DropdownMenuRadioGroup>
                         </DropdownMenuContent>
                     </DropdownMenu>
