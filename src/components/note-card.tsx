@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
 type DisplayMode = 'grid' | 'list';
@@ -62,6 +62,15 @@ export const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelet
     useEffect(() => {
         setUpdatedText(formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true }));
     }, [note.updatedAt]);
+
+    const plainTextContent = useMemo(() => {
+        if (typeof window !== 'undefined') {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = note.content;
+            return tempDiv.textContent || tempDiv.innerText || "";
+        }
+        return note.content.replace(/<[^>]*>?/gm, '');
+    }, [note.content]);
 
     const isList = displayMode === 'list';
     const isWelcomeNote = note.id === 'note-1';
@@ -89,7 +98,7 @@ export const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelet
                 <p className={cn("text-sm text-muted-foreground",
                     isList ? "line-clamp-2" : "line-clamp-4"
                 )}>
-                    {note.content}
+                    {plainTextContent}
                 </p>
             </CardContent>
             <CardFooter className={cn(
