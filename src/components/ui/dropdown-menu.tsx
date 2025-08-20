@@ -141,11 +141,13 @@ DropdownMenuRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName
 const DropdownMenuLabel = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Label>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & {
-    inset?: boolean
+    inset?: boolean;
+    onMouseDown?: (e: React.MouseEvent) => void;
   }
->(({ className, inset, ...props }, ref) => (
+>(({ className, inset, onMouseDown, ...props }, ref) => (
   <DropdownMenuPrimitive.Label
     ref={ref}
+    onMouseDown={onMouseDown}
     className={cn(
       "px-2 py-1.5 text-sm font-semibold",
       inset && "pl-8",

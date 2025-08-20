@@ -49,10 +49,13 @@ import {
   ArrowLeft,
   Loader2,
   Trash2,
+  CaseSensitive,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { Label } from './ui/label';
+import { Slider } from './ui/slider';
 
 interface NoteEditorProps {
   note: Note;
@@ -221,7 +224,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                                 <span className="sr-only">Editor Settings</span>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="w-64">
                              <DropdownMenuLabel>Editor Settings</DropdownMenuLabel>
                              <DropdownMenuSeparator/>
                              <DropdownMenuLabel className="text-xs font-normal">Theme</DropdownMenuLabel>
@@ -237,6 +240,21 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                                 <DropdownMenuRadioItem value="sans">Sans-serif</DropdownMenuRadioItem>
                                 <DropdownMenuRadioItem value="mono">Monospace</DropdownMenuRadioItem>
                              </DropdownMenuRadioGroup>
+                              <DropdownMenuSeparator/>
+                                <div className="p-2 space-y-2">
+                                    <Label htmlFor="font-size-slider" className="text-xs font-normal">Font Size ({settings.fontSize}px)</Label>
+                                    <div className='flex items-center gap-2'>
+                                        <CaseSensitive className="h-5 w-5"/>
+                                        <Slider
+                                            id="font-size-slider"
+                                            min={12}
+                                            max={24}
+                                            step={1}
+                                            value={[settings.fontSize]}
+                                            onValueChange={(value) => handleSettingsChange({ fontSize: value[0] })}
+                                        />
+                                    </div>
+                                </div>
                               <DropdownMenuSeparator/>
                               <DropdownMenuLabel className="text-xs font-normal">Direction</DropdownMenuLabel>
                              <DropdownMenuRadioGroup value={settings.direction} onValueChange={(v) => handleSettingsChange({direction: v as EditorDirection})}>
