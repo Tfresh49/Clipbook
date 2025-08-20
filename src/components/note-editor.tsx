@@ -83,6 +83,14 @@ type ActiveTools = {
     heading?: string;
 };
 
+const COLOR_PALETTE = [
+  '#000000', '#444444', '#666666', '#999999', '#CCCCCC', '#EEEEEE', '#F3F3F3', '#FFFFFF',
+  '#FF0000', '#FF9900', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#9900FF', '#FF00FF',
+  '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#03A9F4', '#00BCD4',
+  '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722',
+];
+
+
 export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = false, onBack }: NoteEditorProps) {
   const { toast } = useToast();
   const [settings, setSettings] = React.useState<NoteSettings>({
@@ -123,12 +131,12 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
     if (document.queryCommandState('underline')) newActiveTools.underline = true;
     if (document.queryCommandState('strikethrough')) newActiveTools.strikethrough = true;
     
-    for (let i = 1; i <= 6; i++) {
-        if (document.queryCommandState('formatBlock', false, `h${i}`)) {
-            newActiveTools.heading = `h${i}`;
-            break;
-        }
+    let headingValue = document.queryCommandValue('formatBlock');
+    // Normalize heading value
+    if (headingValue.match(/h[1-6]/i)) {
+      newActiveTools.heading = headingValue.toLowerCase();
     }
+
     setActiveTools(newActiveTools);
   };
   
@@ -151,11 +159,34 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
     };
   }, []);
 
+  const handleHeadingClick = (e: React.MouseEvent, heading: string) => {
+    e.preventDefault();
+    applyFormat('formatBlock', heading);
+  };
+
 
   const editorStyle: React.CSSProperties = {
     fontSize: `${settings.fontSize}px`,
     direction: settings.direction,
   };
+
+  const ColorPalette = ({ command }: { command: 'foreColor' | 'backColor' }) => (
+    <DropdownMenuContent>
+      <div className="grid grid-cols-8 gap-2 p-2">
+        {COLOR_PALETTE.map((color) => (
+          <DropdownMenuItem
+            key={color}
+            className="w-6 h-6 p-0 rounded-full cursor-pointer focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            style={{ backgroundColor: color }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              applyFormat(command, color);
+            }}
+          />
+        ))}
+      </div>
+    </DropdownMenuContent>
+  );
   
   return (
     <div className={cn("flex flex-col h-screen", FONT_CLASSES[settings.font])}>
@@ -250,13 +281,13 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h1>'); }}><Heading1 className="mr-2"/> Heading 1</DropdownMenuItem>
-                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h2>'); }}><Heading2 className="mr-2"/> Heading 2</DropdownMenuItem>
-                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h3>'); }}><Heading3 className="mr-2"/> Heading 3</DropdownMenuItem>
-                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h4>'); }}><Heading4 className="mr-2"/> Heading 4</DropdownMenuItem>
-                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h5>'); }}><Heading5 className="mr-2"/> Heading 5</DropdownMenuItem>
-                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', '<h6>'); }}><Heading6 className="mr-2"/> Heading 6</DropdownMenuItem>
-                          <DropdownMenuItem onMouseDown={(e) => { e.preventDefault(); applyFormat('formatBlock', 'p'); }}>Paragraph</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => handleHeadingClick(e, '<h1>')}><Heading1 className="mr-2"/> Heading 1</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => handleHeadingClick(e, '<h2>')}><Heading2 className="mr-2"/> Heading 2</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => handleHeadingClick(e, '<h3>')}><Heading3 className="mr-2"/> Heading 3</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => handleHeadingClick(e, '<h4>')}><Heading4 className="mr-2"/> Heading 4</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => handleHeadingClick(e, '<h5>')}><Heading5 className="mr-2"/> Heading 5</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => handleHeadingClick(e, '<h6>')}><Heading6 className="mr-2"/> Heading 6</DropdownMenuItem>
+                          <DropdownMenuItem onMouseDown={(e) => handleHeadingClick(e, '<p>')}>Paragraph</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <Separator orientation="vertical" className="h-6"/>
@@ -265,8 +296,18 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                       <Button variant={activeTools.underline ? 'secondary' : 'ghost'} size="icon" title="Underline" onMouseDown={(e) => { e.preventDefault(); applyFormat('underline'); }}><Underline/></Button>
                       <Button variant={activeTools.strikethrough ? 'secondary' : 'ghost'} size="icon" title="Strikethrough" onMouseDown={(e) => { e.preventDefault(); applyFormat('strikeThrough'); }}><Strikethrough/></Button>
                       <Separator orientation="vertical" className="h-6"/>
-                      <Button variant="ghost" size="icon" title="Text Color"><Palette/></Button>
-                      <Button variant="ghost" size="icon" title="Highlight"><PaintBucket/></Button>
+                       <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" title="Text Color"><Palette/></Button>
+                        </DropdownMenuTrigger>
+                        <ColorPalette command="foreColor" />
+                      </DropdownMenu>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" title="Highlight"><PaintBucket/></Button>
+                        </DropdownMenuTrigger>
+                        <ColorPalette command="backColor" />
+                      </DropdownMenu>
                        <Separator orientation="vertical" className="h-6"/>
                       <Button variant="ghost" size="icon" title="Insert Link" onClick={() => setIsUrlModalOpen(true)}><Link/></Button>
                       <Button variant="ghost" size="icon" title="Code Block"><Code2/></Button>
@@ -278,7 +319,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
              </div>
         </header>
       <main className="flex-1 overflow-y-auto">
-        <div className="container h-full mx-auto px-0 sm:px-4 md:px-8 max-w-4xl">
+        <div className="container h-full mx-auto px-0 sm:px-0 md:px-0 max-w-4xl">
             <div
                 ref={editorRef}
                 contentEditable={!readOnly}
