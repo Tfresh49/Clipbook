@@ -50,6 +50,7 @@ import {
   Loader2,
   Trash2,
   CaseSensitive,
+  HelpCircle,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -105,7 +106,10 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
   const [activeTools, setActiveTools] = React.useState<ActiveTools>({});
   const [isInfoModalOpen, setIsInfoModalOpen] = React.useState(false);
   const [isUrlModalOpen, setIsUrlModalOpen] = React.useState(false);
+  const [url, setUrl] = React.useState('');
+  const [selection, setSelection] = React.useState<Selection | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = React.useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = React.useState(false);
   const editorRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -166,6 +170,25 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
     e.preventDefault();
     applyFormat('formatBlock', heading);
   };
+
+  const handleLink = () => {
+    if(selection) {
+      const range = selection.getRangeAt(0);
+      editorRef.current?.focus();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+    if (url) {
+      applyFormat('createLink', url);
+    }
+    setIsUrlModalOpen(false);
+    setUrl('');
+  };
+
+  const openLinkModal = () => {
+    setSelection(window.getSelection()?.getRangeAt(0).cloneRange() ? window.getSelection() : null);
+    setIsUrlModalOpen(true);
+  }
 
 
   const editorStyle: React.CSSProperties = {
@@ -261,6 +284,11 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                                 <DropdownMenuRadioItem value="ltr">Left-to-Right</DropdownMenuRadioItem>
                                 <DropdownMenuRadioItem value="rtl">Right-to-Right</DropdownMenuRadioItem>
                              </DropdownMenuRadioGroup>
+                             <DropdownMenuSeparator/>
+                            <DropdownMenuItem onSelect={() => setIsHelpModalOpen(true)}>
+                                <HelpCircle className="mr-2 h-4 w-4" />
+                                How to Use
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                     {!readOnly && (
@@ -290,10 +318,10 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
              <div className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="container flex items-center h-12">
                  <ScrollArea className="w-full whitespace-nowrap">
-                    <div className="flex items-center h-12 space-x-1 px-2">
+                    <div className="flex items-center h-12 space-x-1">
                         <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant={activeTools.heading ? 'secondary' : 'ghost'} size="sm">
+                            <Button variant={activeTools.heading ? 'secondary' : 'ghost'} size="sm" className="w-28 justify-start">
                                 <Heading className="mr-2"/>
                                 {activeTools.heading ? activeTools.heading.toUpperCase() : 'Heading'}
                             </Button>
@@ -327,7 +355,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                         <ColorPalette command="backColor" />
                       </DropdownMenu>
                        <Separator orientation="vertical" className="h-6"/>
-                      <Button variant="ghost" size="icon" title="Insert Link" onClick={() => setIsUrlModalOpen(true)}><Link/></Button>
+                      <Button variant="ghost" size="icon" title="Insert Link" onMouseDown={(e) => e.preventDefault()} onClick={openLinkModal}><Link/></Button>
                       <Button variant="ghost" size="icon" title="Code Block"><Code2/></Button>
                       <Button variant="ghost" size="icon" title="Upload Image" onClick={() => setIsImageModalOpen(true)}><FileImage/></Button>
                     </div>
@@ -351,7 +379,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                 suppressContentEditableWarning
                 placeholder="Start writing your masterpiece..."
                 className={cn(
-                    "w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 p-4 sm:p-8 text-base leading-relaxed min-h-[calc(100vh-11rem)] outline-none [&_h1]:text-4xl [&_h1]:font-bold [&_h2]:text-3xl [&_h2]:font-bold [&_h3]:text-2xl [&_h3]:font-bold [&_h4]:text-xl [&_h4]:font-bold [&_h5]:text-lg [&_h5]:font-bold [&_h6]:text-base [&_h6]:font-bold",
+                    "w-full h-full resize-none border-0 shadow-none focus-visible:ring-0 p-8 text-base leading-relaxed min-h-[calc(100vh-11rem)] outline-none [&_h1]:text-4xl [&_h1]:font-bold [&_h2]:text-3xl [&_h2]:font-bold [&_h3]:text-2xl [&_h3]:font-bold [&_h4]:text-xl [&_h4]:font-bold [&_h5]:text-lg [&_h5]:font-bold [&_h6]:text-base [&_h6]:font-bold",
                     THEME_CLASSES[settings.theme]
                 )}
                 style={editorStyle}
@@ -384,11 +412,19 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                 <AlertDialogHeader>
                     <AlertDialogTitle>Insert Link</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This feature is coming soon! You'll be able to add links to your notes.
+                      Enter the URL you want to link to.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
+                <div className="py-4">
+                  <Input 
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://example.com"
+                  />
+                </div>
                 <AlertDialogFooter>
-                    <AlertDialogAction onClick={() => setIsUrlModalOpen(false)}>Got It</AlertDialogAction>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleLink}>Insert Link</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -404,6 +440,47 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogAction onClick={() => setIsImageModalOpen(false)}>Got It</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        {/* How to Use Modal */}
+        <AlertDialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
+            <AlertDialogContent className="max-w-2xl">
+                <AlertDialogHeader>
+                    <AlertDialogTitle>How to Use the Editor</AlertDialogTitle>
+                </AlertDialogHeader>
+                <ScrollArea className="max-h-[60vh] pr-4">
+                  <div className="text-sm text-muted-foreground space-y-4">
+                      <p>Welcome to the ClipBook editor! Here’s a quick rundown of the features at your disposal.</p>
+                      
+                      <h3 className="font-bold text-foreground">Formatting Tools</h3>
+                      <ul className="list-disc list-inside space-y-2">
+                          <li><strong>Headings (H1-H6)</strong>: Structure your document with different levels of headings.</li>
+                          <li><strong>Bold, Italic, Underline, Strikethrough</strong>: Emphasize your text with standard formatting options.</li>
+                          <li><strong>Text Color & Highlight</strong>: Change the color of your text or add a background highlight to make it stand out.</li>
+                          <li><strong>Links</strong>: Select text and click the link icon to turn it into a hyperlink.</li>
+                          <li><strong>Code & Image</strong>: (Coming Soon) You'll be able to add code blocks and images directly into your notes.</li>
+                      </ul>
+
+                      <h3 className="font-bold text-foreground">Editor Settings</h3>
+                      <p>Click the <Settings className="inline-block h-4 w-4" /> icon to customize your writing environment:</p>
+                      <ul className="list-disc list-inside space-y-2">
+                          <li><strong>Theme</strong>: Choose between Light, Dark, and Sepia modes.</li>
+                          <li><strong>Font</strong>: Select from Serif, Sans-serif, or Monospace fonts.</li>
+                          <li><strong>Font Size</strong>: Adjust the text size for readability.</li>
+                          <li><strong>Direction</strong>: Switch between Left-to-Right (LTR) and Right-to-Left (RTL) text direction.</li>
+                      </ul>
+                      
+                      <h3 className="font-bold text-foreground">Markdown-Style Shortcuts (Coming Soon!)</h3>
+                      <p>We're working on adding fast, intuitive Markdown shortcuts like `**bold**`, `*italic*`, and `# Heading` to speed up your writing workflow.</p>
+                      
+                      <h3 className="font-bold text-foreground">Saving and Syncing</h3>
+                      <p>Your notes are saved automatically as you type. All changes are synced to your local storage, and will be backed up online whenever you have a network connection.</p>
+                  </div>
+                </ScrollArea>
+                <AlertDialogFooter>
+                    <AlertDialogAction onClick={() => setIsHelpModalOpen(false)}>Got it!</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
