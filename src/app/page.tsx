@@ -21,9 +21,26 @@ import {
   LayoutDashboard,
   CreditCard,
   AppWindow,
+  File,
+  Notebook,
+  Tag,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuItem,
+    SidebarMenuButton,
+    SidebarProvider,
+    SidebarInset,
+    SidebarTrigger,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupLabel
+} from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { INITIAL_NOTES } from '@/lib/data';
@@ -57,6 +74,7 @@ import { NoteVersionHistory } from '@/components/note-version-history';
 import { NoteCard } from '@/components/note-card';
 import { Progress } from '@/components/ui/progress';
 import { ToastAction } from '@/components/ui/toast';
+import { Separator } from '@/components/ui/separator';
 
 type DisplayMode = 'grid' | 'list';
 type SortKey = 'updatedAt' | 'createdAt' | 'title' | 'contentLength';
@@ -286,73 +304,16 @@ export default function Home() {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-        <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
-                <div className="flex gap-6 md:gap-10">
+    <SidebarProvider>
+        <Sidebar>
+            <SidebarHeader>
+                <div className="flex items-center gap-2">
                     <a href="/" className="flex items-center space-x-2">
                         <span className="inline-block font-bold text-2xl font-headline">ClipBook</span>
                     </a>
+                    <SidebarTrigger />
                 </div>
-                <div className="flex flex-1 items-center justify-end space-x-2">
-                    <ThemeToggle />
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                             <Button variant="ghost" size="icon">
-                                <User className="h-5 w-5" />
-                                <span className="sr-only">Profile</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                             <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                             <DropdownMenuSeparator/>
-                             <DropdownMenuItem>
-                                 <LayoutDashboard className="mr-2"/> Dashboard
-                             </DropdownMenuItem>
-                             <DropdownMenuSeparator/>
-                             <div className="p-2">
-                                <p className="text-xs text-muted-foreground mb-1">Storage</p>
-                                <Progress value={33} className="h-2"/>
-                                <p className="text-xs text-muted-foreground mt-1">3.3GB of 10GB used</p>
-                             </div>
-                             <DropdownMenuSeparator/>
-                             <DropdownMenuItem>
-                                <Trash2 className="mr-2"/> Trash
-                             </DropdownMenuItem>
-                             <DropdownMenuItem>
-                                <CreditCard className="mr-2"/> Billing
-                                <DropdownMenuShortcut>
-                                    <Badge variant="secondary">Pro</Badge>
-                                </DropdownMenuShortcut>
-                             </DropdownMenuItem>
-                             <DropdownMenuItem>
-                                <Settings className="mr-2"/> Account Settings
-                             </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-5 w-5" />
-                                <span className="sr-only">App Menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem><Settings className="mr-2"/>App Settings</DropdownMenuItem>
-                            <DropdownMenuItem><HelpCircle className="mr-2"/>About</DropdownMenuItem>
-                            <DropdownMenuItem><Newspaper className="mr-2"/>News/Updates</DropdownMenuItem>
-                             <DropdownMenuItem><AppWindow className="mr-2"/>Other Apps</DropdownMenuItem>
-                            <DropdownMenuSeparator/>
-                            <DropdownMenuItem onClick={() => setIsPwaModalOpen(true)}><Download className="mr-2"/>Download App</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </div>
-        </header>
-
-        <main className="flex-1 container py-8">
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <div className="relative flex-grow">
+                <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input 
                         placeholder="Search notes..."
@@ -361,97 +322,203 @@ export default function Home() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button variant={displayMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('grid')}>
-                        <List className="h-5 w-5"/>
-                        <span className="sr-only">Grid View</span>
-                    </Button>
-                    <Button variant={displayMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('list')}>
-                        <LayoutGrid className="h-5 w-5"/>
-                        <span className="sr-only">List View</span>
-                    </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon">
-                                <Filter className="h-5 w-5"/>
-                                <span className="sr-only">Filter</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                            <DropdownMenuRadioGroup value={`${sortKey}-${sortDirection}`} onValueChange={(value) => {
-                                const [key, dir] = value.split('-') as [SortKey, SortDirection];
-                                setSortKey(key);
-                                setSortDirection(dir);
-                            }}>
-                                <DropdownMenuRadioItem value="updatedAt-desc">Newest</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="updatedAt-asc">Oldest (Updated)</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="title-asc">Title (A-Z)</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="title-desc">Title (Z-A)</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="contentLength-desc">Length (Longest)</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="contentLength-asc">Length (Shortest)</DropdownMenuRadioItem>
-                            </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                     <Button onClick={handleNewNote}>
-                        <FilePlus2 className="mr-2 h-5 w-5"/>
-                        New Note
-                    </Button>
-                </div>
-            </div>
+            </SidebarHeader>
+            <SidebarContent>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton href="/" isActive>
+                            <File /> All Notes
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                         <SidebarMenuButton href="/">
+                            <Notebook /> Notebooks
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                         <SidebarMenuButton href="/">
+                            <Tag /> Tags
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+                 <Separator className="my-4" />
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton href="/">
+                            <Settings /> Settings
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton href="/">
+                            <Trash2 /> Trash
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarContent>
+            <SidebarFooter>
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                         <Button variant="ghost" className="w-full justify-start gap-2">
+                            <User className="h-5 w-5" />
+                            <span className="truncate">My Account</span>
+                            <MoreVertical className="h-5 w-5 ml-auto"/>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64 ml-4 mb-2">
+                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                         <DropdownMenuSeparator/>
+                         <DropdownMenuItem>
+                             <LayoutDashboard className="mr-2"/> Dashboard
+                         </DropdownMenuItem>
+                         <DropdownMenuSeparator/>
+                         <div className="p-2">
+                            <p className="text-xs text-muted-foreground mb-1">Storage</p>
+                            <Progress value={33} className="h-2"/>
+                            <p className="text-xs text-muted-foreground mt-1">3.3GB of 10GB used</p>
+                         </div>
+                         <DropdownMenuSeparator/>
+                         <DropdownMenuItem>
+                            <Trash2 className="mr-2"/> Trash
+                         </DropdownMenuItem>
+                         <DropdownMenuItem>
+                            <CreditCard className="mr-2"/> Billing
+                            <DropdownMenuShortcut>
+                                <Badge variant="secondary">Pro</Badge>
+                            </DropdownMenuShortcut>
+                         </DropdownMenuItem>
+                         <DropdownMenuItem>
+                            <Settings className="mr-2"/> Account Settings
+                         </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </SidebarFooter>
+        </Sidebar>
 
-            {isLoading ? (
-                 <div className="text-center py-20">
-                    <h2 className="text-2xl font-semibold">Loading Notes...</h2>
-                 </div>
-            ) : filteredAndSortedNotes.length > 0 ? (
-                 <div className={cn(
-                    displayMode === 'grid' 
-                    ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6' 
-                    : 'grid grid-cols-1 gap-4'
-                 )}>
-                    {filteredAndSortedNotes.map(note => (
-                       <NoteCard 
-                            key={note.id}
-                            note={note}
-                            displayMode={displayMode}
-                            onRename={(note) => {
-                                // Prevent modal from closing due to event propagation
-                                event?.stopPropagation();
-                                openRenameModal(note);
-                            }}
-                            onShare={(note) => {
-                                event?.stopPropagation();
-                                openShareModal(note)
-                            }}
-                            onInfo={(note) => {
-                                event?.stopPropagation();
-                                openInfoModal(note)
-                            }}
-                            onDelete={(id) => {
-                                event?.stopPropagation();
-                                handleDeleteNote(id)
-                            }}
-                            onShowHistory={(note) => {
-                                event?.stopPropagation();
-                                openHistoryPanel(note)
-                            }}
-                       />
-                    ))}
-                 </div>
-            ) : (
-                <div className="text-center py-20">
-                    <h2 className="text-2xl font-semibold">No Notes Found</h2>
-                    <p className="text-muted-foreground mt-2">
-                        {searchQuery ? `No notes match your search for "${searchQuery}".` : "You haven't created any notes yet."}
-                    </p>
-                    <Button onClick={handleNewNote} className="mt-6">
-                        <FilePlus2 className="mr-2" />
-                        Create Your First Note
-                    </Button>
+        <SidebarInset>
+            <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
+                    <div className="flex gap-6 md:gap-10">
+                        <a href="/" className="flex items-center space-x-2">
+                            <span className="inline-block font-bold text-2xl font-headline md:hidden">ClipBook</span>
+                        </a>
+                    </div>
+                    <div className="flex flex-1 items-center justify-end space-x-2">
+                        <ThemeToggle />
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-5 w-5" />
+                                    <span className="sr-only">App Menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem><Settings className="mr-2"/>App Settings</DropdownMenuItem>
+                                <DropdownMenuItem><HelpCircle className="mr-2"/>About</DropdownMenuItem>
+                                <DropdownMenuItem><Newspaper className="mr-2"/>News/Updates</DropdownMenuItem>
+                                 <DropdownMenuItem><AppWindow className="mr-2"/>Other Apps</DropdownMenuItem>
+                                <DropdownMenuSeparator/>
+                                <DropdownMenuItem onClick={() => setIsPwaModalOpen(true)}><Download className="mr-2"/>Download App</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
-            )}
-        </main>
+            </header>
+            <main className="flex-1 container py-8">
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                    <h1 className="text-3xl font-bold">All Notes</h1>
+                    <div className="flex-grow" />
+                    <div className="flex items-center gap-2">
+                        <Button variant={displayMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('grid')}>
+                            <LayoutGrid className="h-5 w-5"/>
+                            <span className="sr-only">Grid View</span>
+                        </Button>
+                        <Button variant={displayMode === 'list' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('list')}>
+                            <List className="h-5 w-5"/>
+                            <span className="sr-only">List View</span>
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="icon">
+                                    <Filter className="h-5 w-5"/>
+                                    <span className="sr-only">Filter</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                                <DropdownMenuRadioGroup value={`${sortKey}-${sortDirection}`} onValueChange={(value) => {
+                                    const [key, dir] = value.split('-') as [SortKey, SortDirection];
+                                    setSortKey(key);
+                                    setSortDirection(dir);
+                                }}>
+                                    <DropdownMenuRadioItem value="updatedAt-desc">Newest</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="updatedAt-asc">Oldest (Updated)</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="title-asc">Title (A-Z)</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="title-desc">Title (Z-A)</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="contentLength-desc">Length (Longest)</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="contentLength-asc">Length (Shortest)</DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                         <Button onClick={handleNewNote}>
+                            <FilePlus2 className="mr-2 h-5 w-5"/>
+                            New Note
+                        </Button>
+                    </div>
+                </div>
+
+                {isLoading ? (
+                     <div className="text-center py-20">
+                        <h2 className="text-2xl font-semibold">Loading Notes...</h2>
+                     </div>
+                ) : filteredAndSortedNotes.length > 0 ? (
+                     <div className={cn(
+                        displayMode === 'grid' 
+                        ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6' 
+                        : 'grid grid-cols-1 gap-4'
+                     )}>
+                        {filteredAndSortedNotes.map(note => (
+                           <NoteCard 
+                                key={note.id}
+                                note={note}
+                                displayMode={displayMode}
+                                onRename={(note) => {
+                                    // Prevent modal from closing due to event propagation
+                                    event?.stopPropagation();
+                                    openRenameModal(note);
+                                }}
+                                onShare={(note) => {
+                                    event?.stopPropagation();
+                                    openShareModal(note)
+                                }}
+                                onInfo={(note) => {
+                                    event?.stopPropagation();
+                                    openInfoModal(note)
+                                }}
+                                onDelete={(id) => {
+                                    event?.stopPropagation();
+                                    handleDeleteNote(id)
+                                }}
+                                onShowHistory={(note) => {
+                                    event?.stopPropagation();
+                                    openHistoryPanel(note)
+                                }}
+                           />
+                        ))}
+                     </div>
+                ) : (
+                    <div className="text-center py-20">
+                        <h2 className="text-2xl font-semibold">No Notes Found</h2>
+                        <p className="text-muted-foreground mt-2">
+                            {searchQuery ? `No notes match your search for "${searchQuery}".` : "You haven't created any notes yet."}
+                        </p>
+                        <Button onClick={handleNewNote} className="mt-6">
+                            <FilePlus2 className="mr-2" />
+                            Create Your First Note
+                        </Button>
+                    </div>
+                )}
+            </main>
+        </SidebarInset>
         
         {noteToEdit && (
             <NoteVersionHistory
@@ -537,6 +604,6 @@ export default function Home() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-    </div>
+    </SidebarProvider>
   );
 }
