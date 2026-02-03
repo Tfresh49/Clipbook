@@ -217,7 +217,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
   return (
     <div className={cn("flex flex-col h-screen", FONT_CLASSES[settings.font])}>
        <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-16 items-center space-x-2 sm:space-x-4">
+            <div className="flex h-16 items-center space-x-2 sm:space-x-4 px-4 sm:px-8">
                 <Button variant="ghost" size="icon" onClick={onBack}>
                     <ArrowLeft />
                     <span className="sr-only">Back</span>
@@ -317,7 +317,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
             </div>
             {!readOnly && (
              <div className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="container flex items-center h-12">
+              <div className="flex items-center h-12 px-4 sm:px-8">
                  <ScrollArea className="w-full whitespace-nowrap">
                     <div className="flex items-center h-12 space-x-1">
                         <DropdownMenu>
@@ -367,7 +367,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
             )}
         </header>
       <main className="flex-1 overflow-y-auto">
-        <div className="container h-full mx-auto px-0 sm:px-0 md:px-0 max-w-4xl">
+        <div className="h-full">
             <div
                 ref={editorRef}
                 contentEditable={!readOnly}
