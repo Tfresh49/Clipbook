@@ -307,12 +307,6 @@ export default function Home() {
     <SidebarProvider>
         <Sidebar>
             <SidebarHeader>
-                <div className="flex items-center justify-between">
-                    <a href="/" className="flex items-center space-x-2">
-                        <span className="inline-block font-bold text-2xl font-headline">ClipBook</span>
-                    </a>
-                    <SidebarTrigger />
-                </div>
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input 
@@ -396,13 +390,14 @@ export default function Home() {
 
         <SidebarInset>
             <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
-                    <div className="flex gap-6 md:gap-10">
+                <div className="container flex h-16 items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <SidebarTrigger />
                         <a href="/" className="flex items-center space-x-2">
-                            <span className="inline-block font-bold text-2xl font-headline md:hidden">ClipBook</span>
+                            <span className="inline-block font-bold text-2xl font-headline">ClipBook</span>
                         </a>
                     </div>
-                    <div className="flex flex-1 items-center justify-end space-x-2">
+                    <div className="flex items-center space-x-2">
                         <ThemeToggle />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
