@@ -307,7 +307,7 @@ export default function Home() {
     <SidebarProvider>
         <Sidebar>
             <SidebarHeader>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between">
                     <a href="/" className="flex items-center space-x-2">
                         <span className="inline-block font-bold text-2xl font-headline">ClipBook</span>
                     </a>
