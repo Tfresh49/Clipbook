@@ -94,7 +94,7 @@ export const NoteCard = ({ note, displayMode, onRename, onShare, onInfo, onDelet
                     Updated {updatedText}
                 </CardDescription>
             </CardHeader>
-            <CardContent className={cn("flex-grow w-full", isList && "sm:w-2/3")}>
+            <CardContent className={cn("flex flex-col justify-center flex-grow w-full", isList && "sm:w-2/3")}>
                 <p className={cn("text-sm text-muted-foreground",
                     isList ? "line-clamp-2" : "line-clamp-4"
                 )}>
