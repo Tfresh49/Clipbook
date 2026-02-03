@@ -395,11 +395,11 @@ export default function Home() {
             )}
         </Sidebar>
 
-        <SidebarInset>
+        <div className="relative flex min-h-svh flex-1 flex-col bg-background">
             <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="flex h-16 items-center justify-between px-4 sm:px-8">
                     <div className="flex items-center gap-4">
-                        <SidebarTrigger />
+                        {!isMobile && <SidebarTrigger />}
                         <a href="/" className="flex items-center space-x-2">
                             <span className="inline-block font-bold text-2xl font-headline">ClipBook</span>
                         </a>
@@ -566,7 +566,7 @@ export default function Home() {
                     </div>
                 )}
             </main>
-        </SidebarInset>
+        </div>
         
         {noteToEdit && (
             <NoteVersionHistory
