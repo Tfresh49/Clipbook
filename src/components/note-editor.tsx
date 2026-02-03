@@ -315,6 +315,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                     )}
                 </div>
             </div>
+            {!readOnly && (
              <div className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="container flex items-center h-12">
                  <ScrollArea className="w-full whitespace-nowrap">
@@ -363,6 +364,7 @@ export function NoteEditor({ note, onUpdate, onDelete, isSaving, readOnly = fals
                  </ScrollArea>
               </div>
              </div>
+            )}
         </header>
       <main className="flex-1 overflow-y-auto">
         <div className="container h-full mx-auto px-0 sm:px-0 md:px-0 max-w-4xl">
