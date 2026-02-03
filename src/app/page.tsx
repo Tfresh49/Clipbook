@@ -75,6 +75,8 @@ import { NoteCard } from '@/components/note-card';
 import { Progress } from '@/components/ui/progress';
 import { ToastAction } from '@/components/ui/toast';
 import { Separator } from '@/components/ui/separator';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 type DisplayMode = 'grid' | 'list';
 type SortKey = 'updatedAt' | 'createdAt' | 'title' | 'contentLength';
@@ -98,6 +100,7 @@ export default function Home() {
   const [isWelcomeNoteHidden, setIsWelcomeNoteHidden] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const isMobile = useIsMobile();
 
   // PWA install prompt
   useEffect(() => {
@@ -306,86 +309,90 @@ export default function Home() {
   return (
     <SidebarProvider>
         <Sidebar>
-            <SidebarHeader>
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search notes..."
-                        className="pl-10"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-            </SidebarHeader>
-            <SidebarContent>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton href="/" isActive>
-                            <File /> All Notes
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                         <SidebarMenuButton href="/">
-                            <Notebook /> Notebooks
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                         <SidebarMenuButton href="/">
-                            <Tag /> Tags
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-                 <Separator className="my-4" />
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton href="/">
-                            <Settings /> Settings
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton href="/">
-                            <Trash2 /> Trash
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            </SidebarContent>
-            <SidebarFooter>
-                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                         <Button variant="ghost" className="w-full justify-start gap-2">
-                            <User className="h-5 w-5" />
-                            <span className="truncate">My Account</span>
-                            <MoreVertical className="h-5 w-5 ml-auto"/>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-64 ml-4 mb-2">
-                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                         <DropdownMenuSeparator/>
-                         <DropdownMenuItem>
-                             <LayoutDashboard className="mr-2"/> Dashboard
-                         </DropdownMenuItem>
-                         <DropdownMenuSeparator/>
-                         <div className="p-2">
-                            <p className="text-xs text-muted-foreground mb-1">Storage</p>
-                            <Progress value={33} className="h-2"/>
-                            <p className="text-xs text-muted-foreground mt-1">3.3GB of 10GB used</p>
-                         </div>
-                         <DropdownMenuSeparator/>
-                         <DropdownMenuItem>
-                            <Trash2 className="mr-2"/> Trash
-                         </DropdownMenuItem>
-                         <DropdownMenuItem>
-                            <CreditCard className="mr-2"/> Billing
-                            <DropdownMenuShortcut>
-                                <Badge variant="secondary">Pro</Badge>
-                            </DropdownMenuShortcut>
-                         </DropdownMenuItem>
-                         <DropdownMenuItem>
-                            <Settings className="mr-2"/> Account Settings
-                         </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </SidebarFooter>
+            {!isMobile && (
+                <>
+                    <SidebarHeader>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search notes..."
+                                className="pl-10"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </SidebarHeader>
+                    <SidebarContent>
+                        <SidebarMenu>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton href="/" isActive>
+                                    <File /> All Notes
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton href="/">
+                                    <Notebook /> Notebooks
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton href="/">
+                                    <Tag /> Tags
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                        <Separator className="my-4" />
+                        <SidebarMenu>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton href="/">
+                                    <Settings /> Settings
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton href="/">
+                                    <Trash2 /> Trash
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarContent>
+                    <SidebarFooter>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="w-full justify-start gap-2">
+                                    <User className="h-5 w-5" />
+                                    <span className="truncate">My Account</span>
+                                    <MoreVertical className="h-5 w-5 ml-auto"/>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-64 ml-4 mb-2">
+                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuSeparator/>
+                                <DropdownMenuItem>
+                                    <LayoutDashboard className="mr-2"/> Dashboard
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator/>
+                                <div className="p-2">
+                                    <p className="text-xs text-muted-foreground mb-1">Storage</p>
+                                    <Progress value={33} className="h-2"/>
+                                    <p className="text-xs text-muted-foreground mt-1">3.3GB of 10GB used</p>
+                                </div>
+                                <DropdownMenuSeparator/>
+                                <DropdownMenuItem>
+                                    <Trash2 className="mr-2"/> Trash
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <CreditCard className="mr-2"/> Billing
+                                    <DropdownMenuShortcut>
+                                        <Badge variant="secondary">Pro</Badge>
+                                    </DropdownMenuShortcut>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <Settings className="mr-2"/> Account Settings
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </SidebarFooter>
+                </>
+            )}
         </Sidebar>
 
         <SidebarInset>
@@ -417,6 +424,29 @@ export default function Home() {
                         </DropdownMenu>
                     </div>
                 </div>
+                {isMobile && (
+                    <div className="px-4 pb-4 space-y-4 border-t">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search notes..."
+                                className="pl-10"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                        <ScrollArea className="w-full whitespace-nowrap">
+                            <div className="flex gap-2">
+                                <Button size="sm" variant="secondary"><File className="mr-2 h-4 w-4" />All Notes</Button>
+                                <Button size="sm" variant="ghost"><Notebook className="mr-2 h-4 w-4" />Notebooks</Button>
+                                <Button size="sm" variant="ghost"><Tag className="mr-2 h-4 w-4" />Tags</Button>
+                                <Button size="sm" variant="ghost"><Trash2 className="mr-2 h-4 w-4" />Trash</Button>
+                                <Button size="sm" variant="ghost"><Settings className="mr-2 h-4 w-4" />Settings</Button>
+                            </div>
+                            <ScrollBar orientation="horizontal" />
+                        </ScrollArea>
+                    </div>
+                )}
             </header>
             <main className="flex-1 px-4 sm:px-8 py-8">
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
