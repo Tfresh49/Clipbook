@@ -390,7 +390,7 @@ export default function Home() {
 
         <SidebarInset>
             <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="container flex h-16 items-center justify-between">
+                <div className="flex h-16 items-center justify-between px-4 sm:px-8">
                     <div className="flex items-center gap-4">
                         <SidebarTrigger />
                         <a href="/" className="flex items-center space-x-2">
@@ -418,7 +418,7 @@ export default function Home() {
                     </div>
                 </div>
             </header>
-            <main className="flex-1 container py-8">
+            <main className="flex-1 px-4 sm:px-8 py-8">
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
                     <h1 className="text-3xl font-bold">All Notes</h1>
                     <div className="flex-grow" />
