@@ -405,6 +405,43 @@ export default function Home() {
                         </a>
                     </div>
                     <div className="flex items-center space-x-2">
+                        {isMobile && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <User className="h-5 w-5" />
+                                        <span className="sr-only">User Menu</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-64">
+                                    <DropdownMenuItem><File className="mr-2 h-4 w-4" />All Notes</DropdownMenuItem>
+                                    <DropdownMenuItem><Notebook className="mr-2 h-4 w-4" />Notebooks</DropdownMenuItem>
+                                    <DropdownMenuItem><Tag className="mr-2 h-4 w-4" />Tags</DropdownMenuItem>
+                                    <DropdownMenuSeparator/>
+                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                    <DropdownMenuSeparator/>
+                                    <DropdownMenuItem><LayoutDashboard className="mr-2"/> Dashboard</DropdownMenuItem>
+                                    <DropdownMenuItem><Trash2 className="mr-2"/> Trash</DropdownMenuItem>
+                                    <DropdownMenuItem><Settings className="mr-2"/> Settings</DropdownMenuItem>
+                                    <DropdownMenuSeparator/>
+                                    <DropdownMenuItem>
+                                        <CreditCard className="mr-2"/> Billing
+                                        <DropdownMenuShortcut>
+                                            <Badge variant="secondary">Pro</Badge>
+                                        </DropdownMenuShortcut>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <Settings className="mr-2"/> Account Settings
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator/>
+                                    <div className="p-2">
+                                        <p className="text-xs text-muted-foreground mb-1">Storage</p>
+                                        <Progress value={33} className="h-2"/>
+                                        <p className="text-xs text-muted-foreground mt-1">3.3GB of 10GB used</p>
+                                    </div>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
                         <ThemeToggle />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -424,35 +461,21 @@ export default function Home() {
                         </DropdownMenu>
                     </div>
                 </div>
-                {isMobile && (
-                    <div className="px-4 pb-4 space-y-4 border-t">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                            <Input 
-                                placeholder="Search notes..."
-                                className="pl-10"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                        <ScrollArea className="w-full whitespace-nowrap">
-                            <div className="flex gap-2">
-                                <Button size="sm" variant="secondary"><File className="mr-2 h-4 w-4" />All Notes</Button>
-                                <Button size="sm" variant="ghost"><Notebook className="mr-2 h-4 w-4" />Notebooks</Button>
-                                <Button size="sm" variant="ghost"><Tag className="mr-2 h-4 w-4" />Tags</Button>
-                                <Button size="sm" variant="ghost"><Trash2 className="mr-2 h-4 w-4" />Trash</Button>
-                                <Button size="sm" variant="ghost"><Settings className="mr-2 h-4 w-4" />Settings</Button>
-                            </div>
-                            <ScrollBar orientation="horizontal" />
-                        </ScrollArea>
-                    </div>
-                )}
             </header>
             <main className="flex-1 px-4 sm:px-8 py-8">
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
                     <h1 className="text-3xl font-bold">All Notes</h1>
                     <div className="flex-grow" />
                     <div className="flex items-center gap-2">
+                        <div className="relative sm:hidden">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search"
+                                className="pl-10 w-full"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
                         <Button variant={displayMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setDisplayMode('grid')}>
                             <LayoutGrid className="h-5 w-5"/>
                             <span className="sr-only">Grid View</span>
